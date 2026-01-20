@@ -3,23 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Artemis Deck Experience</title>
-    <link rel="stylesheet" href="style.css">
+    <title>STARBLOOD TCG</title>
+    <style>
+        :root {
+            --card-width: 320px;
+            --card-height: 450px;
+            --universe-glow: rgba(138, 43, 226, 0.6);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* --- BACKGROUND LAYERS --- */
+        .video-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -10;
+        }
+        #bg-video {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.7) 100%);
+            z-index: -9;
+        }
+        #star-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -5;
+            pointer-events: none;
+        }
+
+        /* --- HEADER: STARBLOOD --- */
+        .header-container {
+            position: absolute;
+            top: 50px;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            letter-spacing: 1.5rem;
+        }
+        .letter {
+            display: inline-block;
+            font-size: 4rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 0 10px #fff;
+            animation: cosmic-pulse 3s infinite ease-in-out;
+        }
+        @keyframes cosmic-pulse {
+            0%, 100% { 
+                transform: translateY(0); 
+                text-shadow: 0 0 15px var(--universe-glow), 0 0 30px var(--universe-glow); 
+            }
+            50% { 
+                transform: translateY(-10px); 
+                text-shadow: 0 0 25px #00d4ff, 0 0 50px #00d4ff; 
+            }
+        }
+
+        /* --- DECK STACK --- */
+        .deck {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 120px;
+            height: 168px;
+            cursor: pointer;
+            z-index: 20;
+        }
+        .deck-card {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-image: url('https://googleusercontent.com/image_generation_content/14'); /* Card Back Placeholder */
+            background-size: cover;
+        }
+        .deck-card:nth-child(1) { transform: translate(0,0); }
+        .deck-card:nth-child(2) { transform: translate(-4px,-4px); }
+        .deck-card:nth-child(3) { transform: translate(-8px,-8px); }
+
+        /* --- ACTIVE CARD --- */
+        #stage {
+            position: absolute;
+            width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        .active-card {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: relative;
+            transform-style: preserve-3d;
+            animation: draw-fly 0.9s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        @keyframes draw-fly {
+            0% { transform: translate(40vw, 40vh) scale(0.3) rotateY(0deg); }
+            100% { transform: translate(0, 0) scale(1) rotateY(180deg); }
+        }
+        .card-face {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+        .card-front { transform: rotateY(180deg); background-size: cover; }
+        .card-back { background-image: url('https://googleusercontent.com/image_generation_content/14'); background-size: cover; }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: twinkle var(--d) infinite;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+    </style>
 </head>
 <body>
-    <div id="star-container"></div>
 
-    <div class="game-container">
-        <div class="deck" id="deck" onclick="drawCard()">
-            <div class="deck-card"></div>
-            <div class="deck-card"></div>
-            <div class="deck-card"></div>
-            <div class="deck-label">DRAW</div>
-        </div>
-
-        <div id="stage"></div>
+    <div class="video-container">
+        <video autoplay muted loop playsinline id="bg-video">
+            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
+        </video>
+        <div class="overlay"></div>
     </div>
 
-    <script src="script.js"></script>
+    <div id="star-container"></div>
+
+    <div class="header-container" id="header"></div>
+
+    <div id="stage"></div>
+
+    <div class="deck" onclick="drawCard()">
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+    </div>
+
+    <script>
+        // 1. Create Floating Header
+        const headerText = "STARBLOOD";
+        const headerEl = document.getElementById('header');
+        headerText.split('').forEach((char, i) => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.className = 'letter';
+            span.style.animationDelay = `${i * 0.1}s`;
+            headerEl.appendChild(span);
+        });
+
+        // 2. Generate Stars
+        const starContainer = document.getElementById('star-container');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 2 + 1 + 'px';
+            star.style.width = size;
+            star.style.height = size;
+            star.style.top = Math.random() * 100 + '%';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.setProperty('--d', Math.random() * 3 + 2 + 's');
+            starContainer.appendChild(star);
+        }
+
+        // 3. Card Draw Logic
+        const gemAssets = [
+            'https://googleusercontent.com/image_generation_content/13', // Green
+            'https://googleusercontent.com/image_generation_content/8',  // Red
+            'https://googleusercontent.com/image_generation_content/9'   // Blue
+        ];
+        let currentIdx = 0;
+
+        function drawCard() {
+            const stage = document.getElementById('stage');
+            stage.innerHTML = ''; 
+
+            const card = document.createElement('div');
+            card.className = 'active-card';
+            card.innerHTML = `
+                <div class="card-face card-front" style="background-image: url('${gemAssets[currentIdx]}')"></div>
+                <div class="card-face card-back"></div>
+            `;
+
+            card.addEventListener('click', () => {
+                const isFlipped = card.style.transform.includes('rotateY(0deg)');
+                card.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+            });
+
+            stage.appendChild(card);
+            currentIdx = (currentIdx + 1) % gemAssets.length;
+        }
+    </script>
 </body>
 </html>
