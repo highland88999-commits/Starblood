@@ -18,26 +18,26 @@
             overflow: hidden; height: 100vh;
         }
 
-        /* --- HEADER --- */
+        /* --- DRIPPING HEADER --- */
         .header { margin-top: 15px; display: flex; gap: 8px; z-index: 100; }
         .letter {
             font-size: 3.5rem; font-weight: 900; color: var(--blood);
             display: inline-block; text-shadow: 2px 2px 2px #000;
             animation: bleed 4s infinite ease-in-out;
         }
-        @keyframes bleed { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.1) translateY(5px); } }
+        @keyframes bleed { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.15) translateY(6px); } }
 
         .bg-vid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -10; object-fit: cover; opacity: 0.4;
         }
 
-        /* --- THE GRID MAP --- */
+        /* --- THE MAP --- */
         #game-board {
             display: grid;
             grid-template-columns: repeat(6, 1fr); 
-            gap: 12px; width: 90%; max-width: 700px;
-            margin-top: 30px; perspective: 1200px;
+            gap: 15px; width: 90%; max-width: 750px;
+            margin-top: 30px; perspective: 1500px;
         }
         .slot { width: var(--card-w); height: var(--card-h); border: 1px solid rgba(255,255,255,0.05); }
 
@@ -45,34 +45,35 @@
         .card {
             width: var(--card-w); height: var(--card-h);
             position: absolute; transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
                         top 0.8s cubic-bezier(0.5, 0, 0.5, 1), 
-                        left 0.8s cubic-bezier(0.5, 0, 0.5, 1),
-                        opacity 0.5s;
+                        left 0.8s cubic-bezier(0.5, 0, 0.5, 1), opacity 0.5s;
             cursor: pointer; z-index: 50;
         }
 
-        /* Flip logic: Card container rotates, showing the hidden front */
         .card.flipped { transform: rotateY(180deg); }
 
-        /* Magnetic return logic */
+        /* Match "Magnetic" Effect */
         .card.returning {
-            z-index: 1000; pointer-events: none;
-            transition: all 0.9s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+            z-index: 1000 !important;
+            pointer-events: none;
+            transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045);
         }
 
         .face {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.15);
             background-size: cover; background-position: center;
         }
 
-        /* Gem side: Hidden on the 'inside' (180deg) until flipped */
-        .front { transform: rotateY(180deg); background-color: #222; }
+        /* Gem Face: Attached to the front side */
+        .front { transform: rotateY(180deg); background-color: #1a1a1a; box-shadow: inset 0 0 15px #000; }
 
-        /* Runic side: Facing user initially */
+        /* Runic Face: Attached to the back side */
         .back { background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1000035422.jpg'); }
+
+        .matched-glow { box-shadow: 0 0 25px var(--blood) !important; }
 
         /* --- DECK UI --- */
         .deck-stack {
@@ -83,7 +84,7 @@
             position: absolute; width: 100%; height: 100%; border-radius: 8px;
             background-size: cover;
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1000035422.jpg');
-            box-shadow: -4px -4px 15px rgba(0,0,0,0.8);
+            box-shadow: -5px -5px 20px rgba(0,0,0,0.9);
         }
     </style>
 </head>
@@ -102,95 +103,99 @@
     </div>
 
     <script>
-        const header = document.getElementById('title');
+        const container = document.getElementById('title');
         "STARBLOOD".split('').forEach((l, i) => {
             const span = document.createElement('span');
             span.className = 'letter'; span.textContent = l;
             span.style.animationDelay = `${i * 0.1}s`;
-            header.appendChild(span);
+            container.appendChild(span);
         });
 
-        // 12 Assets from your folder
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-        const gemFiles = [
+        const rawAssets = [
             "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", "1000035399.jpg",
             "1000035400.jpg", "1000035401.jpg", "1000035405.jpg", "1000035406.jpg",
             "1000035407.jpg", "1000035409.jpg", "1000035411.jpg", "1000035415.jpg"
         ];
 
-        let flippedCards = [];
-        let isBusy = false;
+        let activeFlipped = [];
+        let locked = false;
         const board = document.getElementById('game-board');
-        const deck = document.getElementById('deck');
+        const deckSource = document.getElementById('deck');
 
         function initGame() {
-            if (isBusy) return;
+            if (locked) return;
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             
-            let gameData = [...gemFiles, ...gemFiles].sort(() => Math.random() - 0.5);
+            // Create 12 pairs (24 total)
+            let shuffled = [...rawAssets, ...rawAssets].sort(() => Math.random() - 0.5);
 
-            gameData.forEach((file, i) => {
+            shuffled.forEach((file, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.dataset.gem = file;
-                // HARD-ATTACHING THE IMAGES
+                card.dataset.id = file;
                 card.innerHTML = `
                     <div class="face front" style="background-image:url('${path}${file}')"></div>
                     <div class="face back"></div>
                 `;
 
-                // Initial Deck Position (Viewport-relative)
-                const dRect = deck.getBoundingClientRect();
-                card.style.top = dRect.top + 'px';
-                card.style.left = dRect.left + 'px';
+                // Set at Deck
+                const dPos = deckSource.getBoundingClientRect();
+                card.style.top = dPos.top + 'px';
+                card.style.left = dPos.left + 'px';
                 document.body.appendChild(card);
 
-                // Magnetic Deal
+                // Magnetic Deal to Slot
                 setTimeout(() => {
-                    const sRect = slot.getBoundingClientRect();
-                    card.style.top = sRect.top + 'px';
-                    card.style.left = sRect.left + 'px';
-                }, i * 60);
+                    const sPos = slot.getBoundingClientRect();
+                    card.style.top = sPos.top + 'px';
+                    card.style.left = sPos.left + 'px';
+                }, i * 50);
 
                 card.onclick = () => {
-                    if (isBusy || card.classList.contains('flipped') || flippedCards.includes(card)) return;
+                    if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
                     card.classList.add('flipped');
-                    flippedCards.push(card);
-                    if (flippedCards.length === 2) checkMatch();
+                    activeFlipped.push(card);
+                    if (activeFlipped.length === 2) checkLogic();
                 };
             });
         }
 
-        function checkMatch() {
-            isBusy = true;
-            const [c1, c2] = flippedCards;
+        function checkLogic() {
+            locked = true;
+            const [c1, c2] = activeFlipped;
             
-            if (c1.dataset.gem === c2.dataset.gem) {
-                // MATCH: RETURN MAGNETICALLY
+            if (c1.dataset.id === c2.dataset.id) {
+                // Sensation: Glow then Return
                 setTimeout(() => {
-                    const dRect = deck.getBoundingClientRect();
-                    [c1, c2].forEach(c => {
-                        c.classList.add('returning');
-                        c.style.top = dRect.top + 'px';
-                        c.style.left = dRect.left + 'px';
-                        c.style.transform = 'scale(0.1) rotateY(0deg)';
-                        c.style.opacity = '0';
-                    });
-                    flippedCards = [];
-                    isBusy = false;
-                }, 800);
+                    c1.classList.add('matched-glow');
+                    c2.classList.add('matched-glow');
+                    
+                    setTimeout(() => {
+                        const dPos = deckSource.getBoundingClientRect();
+                        [c1, c2].forEach(c => {
+                            c.classList.add('returning');
+                            c.style.top = dPos.top + 'px';
+                            c.style.left = dPos.left + 'px';
+                            c.style.transform = 'scale(0.1) rotateY(0deg)';
+                            c.style.opacity = '0';
+                        });
+                        activeFlipped = [];
+                        locked = false;
+                    }, 500);
+                }, 300);
             } else {
-                // NO MATCH: FLIP BACK
+                // Reset
                 setTimeout(() => {
                     c1.classList.remove('flipped');
                     c2.classList.remove('flipped');
-                    flippedCards = [];
-                    isBusy = false;
+                    activeFlipped = [];
+                    locked = false;
                 }, 1000);
             }
         }
