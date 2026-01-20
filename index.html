@@ -3,216 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STARBLOOD TCG</title>
+    <title>STARBLOOD MEMORY</title>
     <style>
         :root {
-            --card-width: 320px;
-            --card-height: 450px;
+            --card-width: 140px;
+            --card-height: 200px;
+            --blood-red: #8a0303;
             --universe-glow: rgba(138, 43, 226, 0.6);
         }
 
-        body, html {
+        body {
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #050505;
-            font-family: 'Courier New', Courier, monospace;
+            background: #050505;
+            color: white;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
         }
 
-        /* --- BACKGROUND LAYERS --- */
-        .video-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -10;
-        }
-        #bg-video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-        }
-        .overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.7) 100%);
-            z-index: -9;
-        }
-        #star-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -5;
-            pointer-events: none;
-        }
-
-        /* --- HEADER: STARBLOOD --- */
+        /* --- DRIPPING BLOOD HEADER --- */
         .header-container {
-            position: absolute;
-            top: 50px;
-            width: 100%;
+            margin-top: 30px;
+            margin-bottom: 20px;
             text-align: center;
-            z-index: 10;
-            letter-spacing: 1.5rem;
+            filter: url(#goo); /* The liquid "goo" filter */
         }
+
+        .blood-text {
+            font-size: 5rem;
+            font-weight: 900;
+            letter-spacing: 0.8rem;
+            color: var(--blood-red);
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            display: flex;
+            gap: 10px;
+        }
+
         .letter {
             display: inline-block;
-            font-size: 4rem;
-            font-weight: 900;
-            color: white;
-            text-shadow: 0 0 10px #fff;
-            animation: cosmic-pulse 3s infinite ease-in-out;
-        }
-        @keyframes cosmic-pulse {
-            0%, 100% { 
-                transform: translateY(0); 
-                text-shadow: 0 0 15px var(--universe-glow), 0 0 30px var(--universe-glow); 
-            }
-            50% { 
-                transform: translateY(-10px); 
-                text-shadow: 0 0 25px #00d4ff, 0 0 50px #00d4ff; 
-            }
+            animation: drip 4s infinite ease-in-out;
+            position: relative;
         }
 
-        /* --- DECK STACK --- */
-        .deck {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-            width: 120px;
-            height: 168px;
-            cursor: pointer;
-            z-index: 20;
+        @keyframes drip {
+            0%, 100% { transform: translateY(0) scaleY(1); }
+            50% { transform: translateY(10px) scaleY(1.1); filter: blur(1px); }
         }
-        .deck-card {
-            position: absolute;
-            width: 100%; height: 100%;
-            background: #111;
-            border: 2px solid #333;
-            border-radius: 8px;
-            background-image: url('https://googleusercontent.com/image_generation_content/14'); /* Card Back Placeholder */
-            background-size: cover;
-        }
-        .deck-card:nth-child(1) { transform: translate(0,0); }
-        .deck-card:nth-child(2) { transform: translate(-4px,-4px); }
-        .deck-card:nth-child(3) { transform: translate(-8px,-8px); }
 
-        /* --- ACTIVE CARD --- */
-        #stage {
-            position: absolute;
-            width: 100%; height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none;
+        /* --- VIDEO & STARS --- */
+        .bg-layer {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            z-index: -10;
+            object-fit: cover;
+            opacity: 0.6;
         }
-        .active-card {
+
+        /* --- GAME GRID --- */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            perspective: 1000px;
+            max-width: 700px;
+            padding: 20px;
+        }
+
+        .memory-card {
             width: var(--card-width);
             height: var(--card-height);
             position: relative;
             transform-style: preserve-3d;
-            animation: draw-fly 0.9s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-            pointer-events: auto;
+            transition: transform 0.5s;
             cursor: pointer;
         }
-        @keyframes draw-fly {
-            0% { transform: translate(40vw, 40vh) scale(0.3) rotateY(0deg); }
-            100% { transform: translate(0, 0) scale(1) rotateY(180deg); }
-        }
-        .card-face {
+
+        .memory-card.flipped { transform: rotateY(180deg); }
+
+        .front, .back {
             position: absolute;
             width: 100%; height: 100%;
             backface-visibility: hidden;
-            border-radius: 15px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        .card-front { transform: rotateY(180deg); background-size: cover; }
-        .card-back { background-image: url('https://googleusercontent.com/image_generation_content/14'); background-size: cover; }
 
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.5;
-            animation: twinkle var(--d) infinite;
+        .back {
+            background-image: url('https://googleusercontent.com/image_generation_content/14');
+            background-size: cover;
         }
-        @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+        .front {
+            background-size: cover;
+            background-position: center;
+            transform: rotateY(180deg);
+        }
+
+        /* --- SVG FILTER FOR BLOOD EFFECT --- */
+        svg { width: 0; height: 0; position: absolute; }
     </style>
 </head>
 <body>
 
-    <div class="video-container">
-        <video autoplay muted loop playsinline id="bg-video">
-            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
-        </video>
-        <div class="overlay"></div>
+    <video autoplay muted loop playsinline class="bg-layer">
+        <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
+    </video>
+
+    <div class="header-container">
+        <div class="blood-text" id="header"></div>
     </div>
 
-    <div id="star-container"></div>
+    <div class="game-board" id="gameBoard"></div>
 
-    <div class="header-container" id="header"></div>
-
-    <div id="stage"></div>
-
-    <div class="deck" onclick="drawCard()">
-        <div class="deck-card"></div>
-        <div class="deck-card"></div>
-        <div class="deck-card"></div>
-    </div>
+    <svg>
+        <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+        </filter>
+    </svg>
 
     <script>
-        // 1. Create Floating Header
-        const headerText = "STARBLOOD";
-        const headerEl = document.getElementById('header');
-        headerText.split('').forEach((char, i) => {
+        // 1. Setup Header
+        const title = "STARBLOOD";
+        const header = document.getElementById('header');
+        title.split('').forEach((l, i) => {
             const span = document.createElement('span');
-            span.textContent = char;
             span.className = 'letter';
-            span.style.animationDelay = `${i * 0.1}s`;
-            headerEl.appendChild(span);
+            span.textContent = l;
+            span.style.animationDelay = `${i * 0.2}s`;
+            header.appendChild(span);
         });
 
-        // 2. Generate Stars
-        const starContainer = document.getElementById('star-container');
-        for (let i = 0; i < 100; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            const size = Math.random() * 2 + 1 + 'px';
-            star.style.width = size;
-            star.style.height = size;
-            star.style.top = Math.random() * 100 + '%';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.setProperty('--d', Math.random() * 3 + 2 + 's');
-            starContainer.appendChild(star);
-        }
-
-        // 3. Card Draw Logic
-        const gemAssets = [
+        // 2. Card Data (Matches your uploads)
+        const assets = [
             'https://googleusercontent.com/image_generation_content/13', // Green
             'https://googleusercontent.com/image_generation_content/8',  // Red
-            'https://googleusercontent.com/image_generation_content/9'   // Blue
+            'https://googleusercontent.com/image_generation_content/9',  // Blue
+            'https://googleusercontent.com/image_generation_content/10'  // Heart
         ];
-        let currentIdx = 0;
+        
+        // Double assets for pairs and shuffle
+        let cards = [...assets, ...assets];
+        cards.sort(() => Math.random() - 0.5);
 
-        function drawCard() {
-            const stage = document.getElementById('stage');
-            stage.innerHTML = ''; 
+        // 3. Game Logic
+        const board = document.getElementById('gameBoard');
+        let flippedCards = [];
+        let matchedPairs = 0;
 
+        cards.forEach((url, index) => {
             const card = document.createElement('div');
-            card.className = 'active-card';
+            card.className = 'memory-card';
+            card.dataset.url = url;
             card.innerHTML = `
-                <div class="card-face card-front" style="background-image: url('${gemAssets[currentIdx]}')"></div>
-                <div class="card-face card-back"></div>
+                <div class="front" style="background-image: url('${url}')"></div>
+                <div class="back"></div>
             `;
+            card.addEventListener('click', flipCard);
+            board.appendChild(card);
+        });
 
-            card.addEventListener('click', () => {
-                const isFlipped = card.style.transform.includes('rotateY(0deg)');
-                card.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
-            });
+        function flipCard() {
+            if (flippedCards.length < 2 && !this.classList.contains('flipped')) {
+                this.classList.add('flipped');
+                flippedCards.push(this);
 
-            stage.appendChild(card);
-            currentIdx = (currentIdx + 1) % gemAssets.length;
+                if (flippedCards.length === 2) {
+                    checkMatch();
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            if (card1.dataset.url === card2.dataset.url) {
+                matchedPairs++;
+                flippedCards = [];
+                if (matchedPairs === assets.length) alert("STARBLOOD CONQUERED");
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                }, 1000);
+            }
         }
     </script>
 </body>
