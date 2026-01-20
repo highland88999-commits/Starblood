@@ -7,8 +7,8 @@
     <style>
         :root {
             --blood: #b30000;
-            --card-w: 80px;
-            --card-h: 115px;
+            --card-w: 85px;
+            --card-h: 120px;
         }
 
         body {
@@ -18,7 +18,7 @@
             overflow: hidden; height: 100vh;
         }
 
-        /* --- SHARP DRIPPING HEADER --- */
+        /* --- HEADER --- */
         .header { margin-top: 15px; display: flex; gap: 8px; z-index: 100; }
         .letter {
             font-size: 3.5rem; font-weight: 900; color: var(--blood);
@@ -35,19 +35,18 @@
             z-index: -10; object-fit: cover; opacity: 0.4;
         }
 
-        /* --- THE BOARD (MAP) --- */
+        /* --- THE MAP (SLOTS) --- */
         #game-board {
             display: grid;
             grid-template-columns: repeat(6, 1fr); 
-            gap: 15px;
-            width: 90%; max-width: 750px;
+            gap: 12px;
+            width: 90%; max-width: 700px;
             margin-top: 30px;
             perspective: 1200px;
         }
+        .slot { width: var(--card-w); height: var(--card-h); }
 
-        .slot { width: var(--card-w); height: var(--card-h); border-radius: 6px; }
-
-        /* --- THE TWO-SIDED OBJECT --- */
+        /* --- THE CARD OBJECT --- */
         .card {
             width: var(--card-w); height: var(--card-h);
             position: absolute; 
@@ -55,15 +54,14 @@
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
                         top 0.8s cubic-bezier(0.5, 0, 0.5, 1), 
                         left 0.8s cubic-bezier(0.5, 0, 0.5, 1),
-                        opacity 0.5s;
+                        opacity 0.4s;
             cursor: pointer;
             z-index: 10;
         }
 
-        /* Start state: Facing Back */
         .card.flipped { transform: rotateY(180deg); }
 
-        .card.magnetic-return {
+        .card.magnetic-match {
             z-index: 1000;
             pointer-events: none;
             transition: all 0.9s cubic-bezier(0.6, -0.28, 0.735, 0.045);
@@ -72,14 +70,14 @@
         .face {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
             background-size: cover; background-position: center;
         }
 
-        /* Front face shows the Gem (initially hidden at 180deg) */
+        /* Face Value (Front) */
         .front { transform: rotateY(180deg); }
 
-        /* Back face shows the Official Asset (visible by default) */
+        /* Official Card Back (Locked to the object) */
         .back {
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
         }
@@ -93,7 +91,7 @@
             position: absolute; width: 100%; height: 100%; border-radius: 8px;
             background-size: cover;
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
-            box-shadow: -3px -3px 12px rgba(0,0,0,0.9);
+            box-shadow: -4px -4px 15px rgba(0,0,0,0.8);
         }
     </style>
 </head>
@@ -107,29 +105,29 @@
     <div id="game-board"></div>
 
     <div class="deck-stack" id="deck" onclick="initGame()">
-        <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.7;"></div>
+        <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.5;"></div>
         <div class="deck-art"></div>
+        <div style="position:absolute; bottom:-25px; width:100%; text-align:center; font-size:10px; color:var(--blood);">TAP TO SHUFFLE</div>
     </div>
 
     <script>
-        // 1. Header Bleed Effect
-        const headerEl = document.getElementById('title');
+        // 1. Title
+        const header = document.getElementById('title');
         "STARBLOOD".split('').forEach((l, i) => {
             const span = document.createElement('span');
             span.className = 'letter';
             span.textContent = l;
             span.style.animationDelay = `${i * 0.1}s`;
-            headerEl.appendChild(span);
+            header.appendChild(span);
         });
 
-        // 2. 12 Specific Assets
+        // 2. The 12 Card Faces
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-        const rawFiles = [
+        const assets = [
             "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", "1000035399.jpg",
             "1000035400.jpg", "1000035401.jpg", "1000035405.jpg", "1000035406.jpg",
             "1000035407.jpg", "1000035409.jpg", "1000035411.jpg", "1000035415.jpg"
-        ];
-        const gemAssets = rawFiles.map(f => path + f);
+        ].map(f => path + f);
 
         let flipped = [];
         let canFlip = false;
@@ -139,17 +137,16 @@
         function initGame() {
             board.innerHTML = '';
             flipped = [];
-            // Remove any leftover cards from previous game
             document.querySelectorAll('.card').forEach(c => c.remove());
 
-            let deckData = [...gemAssets, ...gemAssets].sort(() => Math.random() - 0.5);
+            // Duplicate to 24 and Shuffle
+            let gameData = [...assets, ...assets].sort(() => Math.random() - 0.5);
 
-            deckData.forEach((img, i) => {
+            gameData.forEach((img, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
-                // Build the Two-Sided Object
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.val = img;
@@ -158,13 +155,13 @@
                     <div class="face back"></div>
                 `;
 
-                // Anchor at deck
+                // Start at deck
                 const dRect = deck.getBoundingClientRect();
                 card.style.top = dRect.top + 'px';
                 card.style.left = dRect.left + 'px';
                 document.body.appendChild(card);
 
-                // Magnetic Deal to Slot
+                // Deal out
                 setTimeout(() => {
                     const sRect = slot.getBoundingClientRect();
                     card.style.top = sRect.top + 'px';
@@ -188,11 +185,11 @@
             const [c1, c2] = flipped;
             
             if (c1.dataset.val === c2.dataset.val) {
-                // MAGNETIC MERGE TO DECK
+                // MAGNETIC MATCH
                 setTimeout(() => {
                     const dRect = deck.getBoundingClientRect();
                     [c1, c2].forEach(c => {
-                        c.classList.add('magnetic-return');
+                        c.classList.add('magnetic-match');
                         c.style.top = dRect.top + 'px';
                         c.style.left = dRect.left + 'px';
                         c.style.transform = 'scale(0.1) rotateY(0deg)';
@@ -201,7 +198,7 @@
                     flipped = []; canFlip = true;
                 }, 700);
             } else {
-                // FORCED RESET
+                // FORCE REVEAL RESET
                 setTimeout(() => {
                     c1.classList.remove('flipped');
                     c2.classList.remove('flipped');
