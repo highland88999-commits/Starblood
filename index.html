@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STARBLOOD MEMORY</title>
+    <title>S T A R B L O O D</title>
     <style>
         :root {
-            --card-w: 100px; /* Smaller for quantity */
-            --card-h: 140px;
-            --blood-red: #b30000;
+            --blood: #b30000;
+            --card-w: 95px;
+            --card-h: 135px;
         }
 
         body {
@@ -19,169 +19,183 @@
         }
 
         /* --- SHARP DRIPPING HEADER --- */
-        .header-container { margin-top: 20px; z-index: 100; }
-        .blood-text {
-            font-size: 4rem; font-weight: 900; letter-spacing: 0.5rem;
-            color: var(--blood-red); display: flex; gap: 5px;
-            filter: drop-shadow(0 0 10px rgba(179, 0, 0, 0.5));
+        .header {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
         }
-        .letter { display: inline-block; animation: drip 3s infinite ease-in-out; }
-        @keyframes drip {
+        .letter {
+            font-size: 4rem; font-weight: 900;
+            color: var(--blood);
+            display: inline-block;
+            text-shadow: 3px 3px 2px #000;
+            animation: bleed 4s infinite ease-in-out;
+        }
+        @keyframes bleed {
             0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(1.1) translateY(5px); }
+            50% { transform: scaleY(1.15) translateY(6px); }
         }
 
-        /* --- BACKGROUND --- */
-        .video-bg {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            z-index: -10; object-fit: cover; opacity: 0.5;
+        /* --- VIDEO BACKGROUND --- */
+        .bg-vid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -10; object-fit: cover; opacity: 0.4;
         }
 
-        /* --- THE DECK (STARTING POSITION) --- */
-        .deck-container {
-            position: absolute; bottom: 30px; right: 30px;
-            width: var(--card-w); height: var(--card-h);
-            cursor: pointer; z-index: 50;
-        }
-        .deck-card {
-            position: absolute; width: 100%; height: 100%;
-            background: #111; border: 1px solid #444; border-radius: 8px;
-            background-image: url('https://googleusercontent.com/image_generation_content/14');
-            background-size: cover;
-        }
-
-        /* --- THE GRID (DEALING TARGET) --- */
-        .game-board {
+        /* --- THE BOARD --- */
+        #game-board {
             display: grid;
-            grid-template-columns: repeat(6, 1fr); /* 6 columns for more cards */
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
+            width: 90%; max-width: 600px;
             margin-top: 40px;
-            perspective: 1000px;
+            perspective: 1200px;
         }
 
         .card {
-            width: var(--card-w); height: var(--card-h);
-            position: relative; transform-style: preserve-3d;
-            transition: transform 0.6s, left 0.8s, top 0.8s;
+            width: var(--card-w);
+            height: var(--card-h);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
         }
 
-        /* Logic for dealing animation */
-        .card.in-deck { position: absolute; bottom: 30px; right: 30px; opacity: 0; pointer-events: none; }
-        .card.dealt { opacity: 1; pointer-events: auto; }
+        /* Initial Deck Position */
+        .card.in-deck {
+            position: absolute; bottom: 40px; right: 40px;
+            transform: rotateZ(5deg); opacity: 0; pointer-events: none;
+        }
 
         .card.flipped { transform: rotateY(180deg); }
 
         .face {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .back { 
-            background-image: url('https://googleusercontent.com/image_generation_content/14'); 
-            background-size: cover; 
+
+        /* OFFICIAL CARD BACK ASSET */
+        .back {
+            background: #111 url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg') no-repeat center;
+            background-size: cover;
         }
-        .front { 
-            transform: rotateY(180deg); background-size: cover; 
-            background-position: center;
+
+        .front {
+            transform: rotateY(180deg);
+            background-size: cover; background-position: center;
+        }
+
+        /* --- DECK STACK UI --- */
+        .deck-stack {
+            position: fixed; bottom: 50px; right: 50px;
+            width: 110px; height: 160px;
+            cursor: pointer; z-index: 200;
+        }
+        .deck-art {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 10px;
+            background-size: cover;
+            /* Using the official card back for the deck art too */
+            background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
+            box-shadow: -3px -3px 15px rgba(0,0,0,0.8);
+            transition: transform 0.2s;
+        }
+        .deck-stack:hover .deck-art { transform: translateY(-5px); }
+        .deck-label {
+            position: absolute; top: -30px; width: 100%;
+            text-align: center; font-size: 12px; letter-spacing: 2px;
+            color: var(--blood); font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <video autoplay muted loop playsinline class="video-bg">
+    <video autoplay muted loop playsinline class="bg-vid">
         <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
     </video>
 
-    <div class="header-container">
-        <div class="blood-text" id="header"></div>
-    </div>
+    <div class="header" id="title"></div>
 
-    <div class="game-board" id="gameBoard"></div>
+    <div id="game-board"></div>
 
-    <div class="deck-container" id="deck" onclick="dealCards()">
-        <div class="deck-card" style="transform: translate(-4px, -4px)"></div>
-        <div class="deck-card" style="transform: translate(-2px, -2px)"></div>
-        <div class="deck-card"></div>
-        <div style="position:absolute; bottom:-25px; width:100%; text-align:center; font-size:12px;">TAP TO DEAL</div>
+    <div class="deck-stack" id="deck-trigger" onclick="dealCards()">
+        <div class="deck-label">DEAL DECK</div>
+        <div class="deck-art" style="transform: translate(-8px, -8px); opacity: 0.6;"></div>
+        <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.8;"></div>
+        <div class="deck-art"></div>
     </div>
 
     <script>
-        // 1. Header setup (Clearer text)
-        const title = "STARBLOOD";
-        const header = document.getElementById('header');
-        title.split('').forEach((l, i) => {
+        // 1. Header setup
+        const container = document.getElementById('title');
+        "STARBLOOD".split('').forEach((l, i) => {
             const span = document.createElement('span');
             span.className = 'letter';
             span.textContent = l;
-            span.style.animationDelay = `${i * 0.1}s`;
-            header.appendChild(span);
+            span.style.animationDelay = `${i * 0.15}s`;
+            container.appendChild(span);
         });
 
-        // 2. Assets (Add more as needed)
-        const baseAssets = [
-            'https://googleusercontent.com/image_generation_content/13',
-            'https://googleusercontent.com/image_generation_content/8',
-            'https://googleusercontent.com/image_generation_content/9',
-            'https://googleusercontent.com/image_generation_content/10',
-            'https://googleusercontent.com/image_generation_content/12',
-            'https://googleusercontent.com/image_generation_content/15'
+        // 2. Card Face Assets (Gemstones)
+        const gems = [
+            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035409.jpg',
+            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035411.jpg',
+            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035415.jpg',
+            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035396.jpg'
         ];
-        
-        // Duplicate for pairs and shuffle
-        let cardData = [...baseAssets, ...baseAssets].sort(() => Math.random() - 0.5);
-        
-        const board = document.getElementById('gameBoard');
-        const deck = document.getElementById('deck');
+
+        let deckData = [...gems, ...gems].sort(() => Math.random() - 0.5);
         let flipped = [];
         let canFlip = false;
 
-        // 3. Create cards in "hidden" state
-        cardData.forEach((url, i) => {
-            const container = document.createElement('div');
-            container.className = 'card in-deck';
-            container.dataset.url = url;
-            container.innerHTML = `
-                <div class="face front" style="background-image: url('${url}')"></div>
+        const board = document.getElementById('game-board');
+        deckData.forEach((img) => {
+            const card = document.createElement('div');
+            card.className = 'card in-deck';
+            card.dataset.val = img;
+            card.innerHTML = `
+                <div class="face front" style="background-image:url(${img})"></div>
                 <div class="face back"></div>
             `;
-            container.onclick = () => flipCard(container);
-            board.appendChild(container);
+            card.onclick = () => {
+                if (!canFlip || card.classList.contains('flipped') || flipped.includes(card)) return;
+                card.classList.add('flipped');
+                flipped.push(card);
+                if (flipped.length === 2) checkMatch();
+            };
+            board.appendChild(card);
         });
 
-        // 4. Deal Mechanic
+        // 3. Deal Logic
         function dealCards() {
-            deck.style.display = 'none'; // Hide deck after click
+            document.getElementById('deck-trigger').style.display = 'none';
             const allCards = document.querySelectorAll('.card');
-            allCards.forEach((c, i) => {
+            allCards.forEach((card, i) => {
                 setTimeout(() => {
-                    c.classList.remove('in-deck');
-                    c.classList.add('dealt');
-                }, i * 100); // Staggered deal effect
+                    card.classList.remove('in-deck');
+                }, i * 120);
             });
-            setTimeout(() => { canFlip = true; }, allCards.length * 100);
+            setTimeout(() => { canFlip = true; }, allCards.length * 120);
         }
 
-        // 5. Flip Logic
-        function flipCard(card) {
-            if (!canFlip || flipped.length >= 2 || card.classList.contains('flipped')) return;
-
-            card.classList.add('flipped');
-            flipped.push(card);
-
-            if (flipped.length === 2) {
-                const [c1, c2] = flipped;
-                if (c1.dataset.url === c2.dataset.url) {
-                    flipped = []; // Match found
-                } else {
-                    canFlip = false;
-                    setTimeout(() => {
-                        c1.classList.remove('flipped');
-                        c2.classList.remove('flipped');
-                        flipped = [];
-                        canFlip = true;
-                    }, 1000);
-                }
+        // 4. Memory Match Logic
+        function checkMatch() {
+            canFlip = false;
+            const [c1, c2] = flipped;
+            if (c1.dataset.val === c2.dataset.val) {
+                flipped = [];
+                canFlip = true;
+                // Add logic for victory check here
+            } else {
+                setTimeout(() => {
+                    c1.classList.remove('flipped');
+                    c2.classList.remove('flipped');
+                    flipped = [];
+                    canFlip = true;
+                }, 1000);
             }
         }
     </script>
