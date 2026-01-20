@@ -7,9 +7,8 @@
     <style>
         :root {
             --blood: #b30000;
-            /* Scaled down to fit 32 cards on one screen */
-            --card-w: 70px; 
-            --card-h: 100px;
+            --card-w: 75px;
+            --card-h: 110px;
         }
 
         body {
@@ -20,10 +19,7 @@
         }
 
         /* --- SHARP DRIPPING HEADER --- */
-        .header {
-            margin-top: 15px;
-            display: flex; gap: 8px; z-index: 100;
-        }
+        .header { margin-top: 15px; display: flex; gap: 8px; z-index: 100; }
         .letter {
             font-size: 3rem; font-weight: 900; color: var(--blood);
             display: inline-block; text-shadow: 2px 2px 2px #000;
@@ -39,40 +35,45 @@
             z-index: -10; object-fit: cover; opacity: 0.4;
         }
 
-        /* --- 32-CARD OPTIMIZED GRID --- */
+        /* --- GAME BOARD --- */
         #game-board {
             display: grid;
-            /* 8 columns for desktop/tablet, adjusts for mobile */
-            grid-template-columns: repeat(8, 1fr); 
-            gap: 10px;
-            width: 95%; max-width: 800px;
-            margin-top: 20px;
+            grid-template-columns: repeat(6, 1fr); 
+            gap: 15px;
+            width: 90%; max-width: 700px;
+            margin-top: 30px;
             perspective: 1200px;
         }
 
-        @media (max-width: 600px) {
-            #game-board { grid-template-columns: repeat(4, 1fr); }
-            :root { --card-w: 65px; --card-h: 90px; }
+        .card-slot {
+            width: var(--card-w);
+            height: var(--card-h);
+            border: 1px dashed rgba(255,255,255,0.1); /* Visible "Map" slots */
+            border-radius: 5px;
         }
 
         .card {
             width: var(--card-w); height: var(--card-h);
-            position: relative; transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: absolute; 
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), top 0.8s cubic-bezier(0.5, 0, 0.5, 1), left 0.8s cubic-bezier(0.5, 0, 0.5, 1);
             cursor: pointer;
-        }
-
-        .card.in-deck {
-            position: absolute; bottom: 20px; right: 20px;
-            transform: rotateZ(10deg); opacity: 0; pointer-events: none;
+            z-index: 10;
         }
 
         .card.flipped { transform: rotateY(180deg); }
 
+        /* Magnetic return state */
+        .card.returning {
+            z-index: 1000;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
         .face {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
         .back {
@@ -108,13 +109,14 @@
 
     <div id="game-board"></div>
 
-    <div class="deck-stack" onclick="dealCards()">
+    <div class="deck-stack" id="deck" onclick="initGame()">
         <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.6;"></div>
         <div class="deck-art"></div>
-        <div style="position:absolute; top:-20px; width:100%; text-align:center; font-size:9px; color:var(--blood);">DEAL 32</div>
+        <div style="position:absolute; top:-20px; width:100%; text-align:center; font-size:10px; color:var(--blood);">SHUFFLE & DEAL</div>
     </div>
 
     <script>
+        // 1. Header Logic
         const container = document.getElementById('title');
         "STARBLOOD".split('').forEach((l, i) => {
             const span = document.createElement('span');
@@ -124,56 +126,100 @@
             container.appendChild(span);
         });
 
-        // 16 unique assets for 32 placements
-        const gemAssets = [
-            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035409.jpg',
-            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035411.jpg',
-            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035415.jpg',
-            'https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/1000035396.jpg',
-            // ... Add the remaining 12 unique URLs from your Vercel folder here
+        // 2. Select 12 unique images from your folder
+        const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
+        const rawAssets = [
+            "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", "1000035399.jpg",
+            "1000035400.jpg", "1000035401.jpg", "1000035405.jpg", "1000035406.jpg",
+            "1000035407.jpg", "1000035409.jpg", "1000035411.jpg", "1000035415.jpg"
         ];
+        const gemAssets = rawAssets.map(file => path + file);
 
-        // For testing, let's fill the rest if you haven't pasted all 16 yet
-        while(gemAssets.length < 16) { gemAssets.push(gemAssets[0]); }
-
-        let deckData = [...gemAssets, ...gemAssets].sort(() => Math.random() - 0.5);
         let flipped = [];
         let canFlip = false;
+        let matchedCount = 0;
 
         const board = document.getElementById('game-board');
-        deckData.forEach((img) => {
-            const card = document.createElement('div');
-            card.className = 'card in-deck';
-            card.dataset.val = img;
-            card.innerHTML = `<div class="face front" style="background-image:url(${img})"></div><div class="face back"></div>`;
-            card.onclick = () => {
-                if (!canFlip || card.classList.contains('flipped') || flipped.includes(card)) return;
-                card.classList.add('flipped');
-                flipped.push(card);
-                if (flipped.length === 2) checkMatch();
-            };
-            board.appendChild(card);
-        });
+        const deck = document.getElementById('deck');
 
-        function dealCards() {
-            document.querySelector('.deck-stack').style.display = 'none';
-            document.querySelectorAll('.card').forEach((card, i) => {
-                setTimeout(() => { card.classList.remove('in-deck'); }, i * 40); // Fast burst deal
+        function initGame() {
+            board.innerHTML = '';
+            matchedCount = 0;
+            flipped = [];
+            
+            // Create 24 cards (12 pairs)
+            let deckData = [...gemAssets, ...gemAssets].sort(() => Math.random() - 0.5);
+
+            deckData.forEach((img, i) => {
+                // Create the "Slot" on the map
+                const slot = document.createElement('div');
+                slot.className = 'card-slot';
+                board.appendChild(slot);
+
+                // Create the Card
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.val = img;
+                card.innerHTML = `<div class="face front" style="background-image:url(${img})"></div><div class="face back"></div>`;
+                
+                // Position card AT the deck initially
+                const deckRect = deck.getBoundingClientRect();
+                card.style.top = deckRect.top + 'px';
+                card.style.left = deckRect.left + 'px';
+                
+                document.body.appendChild(card);
+
+                // Deal animation to the specific slot
+                setTimeout(() => {
+                    const slotRect = slot.getBoundingClientRect();
+                    card.style.top = slotRect.top + 'px';
+                    card.style.left = slotRect.left + 'px';
+                }, i * 50);
+
+                card.onclick = () => handleFlip(card);
             });
-            setTimeout(() => { canFlip = true; }, 32 * 40);
+            setTimeout(() => { canFlip = true; }, 24 * 50);
+        }
+
+        function handleFlip(card) {
+            if (!canFlip || flipped.includes(card) || card.classList.contains('flipped')) return;
+            
+            card.classList.add('flipped');
+            flipped.push(card);
+
+            if (flipped.length === 2) {
+                checkMatch();
+            }
         }
 
         function checkMatch() {
             canFlip = false;
             const [c1, c2] = flipped;
+            
             if (c1.dataset.val === c2.dataset.val) {
-                flipped = []; canFlip = true;
+                // MAGNETIC MATCH
+                setTimeout(() => {
+                    const deckRect = deck.getBoundingClientRect();
+                    [c1, c2].forEach(c => {
+                        c.classList.add('returning');
+                        c.style.top = deckRect.top + 'px';
+                        c.style.left = deckRect.left + 'px';
+                        c.style.transform = 'scale(0.2) rotateY(180deg)';
+                        c.style.opacity = '0';
+                    });
+                    matchedCount += 2;
+                    flipped = [];
+                    canFlip = true;
+                    if (matchedCount === 24) alert("STARBLOOD CONQUERED");
+                }, 600);
             } else {
+                // NO MATCH - FORCE TURN OVER
                 setTimeout(() => {
                     c1.classList.remove('flipped');
                     c2.classList.remove('flipped');
-                    flipped = []; canFlip = true;
-                }, 800);
+                    flipped = [];
+                    canFlip = true;
+                }, 1000);
             }
         }
     </script>
