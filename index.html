@@ -7,8 +7,8 @@
     <style>
         :root {
             --blood: #b30000;
-            --card-w: 75px;
-            --card-h: 110px;
+            --card-w: 80px;
+            --card-h: 115px;
         }
 
         body {
@@ -21,13 +21,13 @@
         /* --- SHARP DRIPPING HEADER --- */
         .header { margin-top: 15px; display: flex; gap: 8px; z-index: 100; }
         .letter {
-            font-size: 3rem; font-weight: 900; color: var(--blood);
+            font-size: 3.5rem; font-weight: 900; color: var(--blood);
             display: inline-block; text-shadow: 2px 2px 2px #000;
             animation: bleed 4s infinite ease-in-out;
         }
         @keyframes bleed {
             0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(1.1) translateY(5px); }
+            50% { transform: scaleY(1.15) translateY(6px); }
         }
 
         .bg-vid {
@@ -35,67 +35,65 @@
             z-index: -10; object-fit: cover; opacity: 0.4;
         }
 
-        /* --- GAME BOARD --- */
+        /* --- THE BOARD (MAP) --- */
         #game-board {
             display: grid;
             grid-template-columns: repeat(6, 1fr); 
             gap: 15px;
-            width: 90%; max-width: 700px;
+            width: 90%; max-width: 750px;
             margin-top: 30px;
             perspective: 1200px;
         }
 
-        .card-slot {
-            width: var(--card-w);
-            height: var(--card-h);
-            border: 1px dashed rgba(255,255,255,0.1); /* Visible "Map" slots */
-            border-radius: 5px;
-        }
+        .slot { width: var(--card-w); height: var(--card-h); border-radius: 6px; }
 
+        /* --- THE TWO-SIDED OBJECT --- */
         .card {
             width: var(--card-w); height: var(--card-h);
             position: absolute; 
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), top 0.8s cubic-bezier(0.5, 0, 0.5, 1), left 0.8s cubic-bezier(0.5, 0, 0.5, 1);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+                        top 0.8s cubic-bezier(0.5, 0, 0.5, 1), 
+                        left 0.8s cubic-bezier(0.5, 0, 0.5, 1),
+                        opacity 0.5s;
             cursor: pointer;
             z-index: 10;
         }
 
+        /* Start state: Facing Back */
         .card.flipped { transform: rotateY(180deg); }
 
-        /* Magnetic return state */
-        .card.returning {
+        .card.magnetic-return {
             z-index: 1000;
             pointer-events: none;
-            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.9s cubic-bezier(0.6, -0.28, 0.735, 0.045);
         }
 
         .face {
             position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden; border-radius: 5px;
+            backface-visibility: hidden; border-radius: 6px;
             border: 1px solid rgba(255,255,255,0.15);
-        }
-
-        .back {
-            background: #111 url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg') no-repeat center;
-            background-size: cover;
-        }
-
-        .front {
-            transform: rotateY(180deg);
             background-size: cover; background-position: center;
+        }
+
+        /* Front face shows the Gem (initially hidden at 180deg) */
+        .front { transform: rotateY(180deg); }
+
+        /* Back face shows the Official Asset (visible by default) */
+        .back {
+            background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
         }
 
         /* --- DECK UI --- */
         .deck-stack {
             position: fixed; bottom: 30px; right: 30px;
-            width: 80px; height: 110px; cursor: pointer; z-index: 200;
+            width: 90px; height: 130px; cursor: pointer; z-index: 200;
         }
         .deck-art {
-            position: absolute; width: 100%; height: 100%; border-radius: 6px;
+            position: absolute; width: 100%; height: 100%; border-radius: 8px;
             background-size: cover;
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
-            box-shadow: -2px -2px 10px rgba(0,0,0,0.8);
+            box-shadow: -3px -3px 12px rgba(0,0,0,0.9);
         }
     </style>
 </head>
@@ -106,90 +104,83 @@
     </video>
 
     <div class="header" id="title"></div>
-
     <div id="game-board"></div>
 
     <div class="deck-stack" id="deck" onclick="initGame()">
-        <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.6;"></div>
+        <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.7;"></div>
         <div class="deck-art"></div>
-        <div style="position:absolute; top:-20px; width:100%; text-align:center; font-size:10px; color:var(--blood);">SHUFFLE & DEAL</div>
     </div>
 
     <script>
-        // 1. Header Logic
-        const container = document.getElementById('title');
+        // 1. Header Bleed Effect
+        const headerEl = document.getElementById('title');
         "STARBLOOD".split('').forEach((l, i) => {
             const span = document.createElement('span');
             span.className = 'letter';
             span.textContent = l;
             span.style.animationDelay = `${i * 0.1}s`;
-            container.appendChild(span);
+            headerEl.appendChild(span);
         });
 
-        // 2. Select 12 unique images from your folder
+        // 2. 12 Specific Assets
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-        const rawAssets = [
+        const rawFiles = [
             "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", "1000035399.jpg",
             "1000035400.jpg", "1000035401.jpg", "1000035405.jpg", "1000035406.jpg",
             "1000035407.jpg", "1000035409.jpg", "1000035411.jpg", "1000035415.jpg"
         ];
-        const gemAssets = rawAssets.map(file => path + file);
+        const gemAssets = rawFiles.map(f => path + f);
 
         let flipped = [];
         let canFlip = false;
-        let matchedCount = 0;
-
         const board = document.getElementById('game-board');
         const deck = document.getElementById('deck');
 
         function initGame() {
             board.innerHTML = '';
-            matchedCount = 0;
             flipped = [];
-            
-            // Create 24 cards (12 pairs)
+            // Remove any leftover cards from previous game
+            document.querySelectorAll('.card').forEach(c => c.remove());
+
             let deckData = [...gemAssets, ...gemAssets].sort(() => Math.random() - 0.5);
 
             deckData.forEach((img, i) => {
-                // Create the "Slot" on the map
                 const slot = document.createElement('div');
-                slot.className = 'card-slot';
+                slot.className = 'slot';
                 board.appendChild(slot);
 
-                // Create the Card
+                // Build the Two-Sided Object
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.val = img;
-                card.innerHTML = `<div class="face front" style="background-image:url(${img})"></div><div class="face back"></div>`;
-                
-                // Position card AT the deck initially
-                const deckRect = deck.getBoundingClientRect();
-                card.style.top = deckRect.top + 'px';
-                card.style.left = deckRect.left + 'px';
-                
+                card.innerHTML = `
+                    <div class="face front" style="background-image:url(${img})"></div>
+                    <div class="face back"></div>
+                `;
+
+                // Anchor at deck
+                const dRect = deck.getBoundingClientRect();
+                card.style.top = dRect.top + 'px';
+                card.style.left = dRect.left + 'px';
                 document.body.appendChild(card);
 
-                // Deal animation to the specific slot
+                // Magnetic Deal to Slot
                 setTimeout(() => {
-                    const slotRect = slot.getBoundingClientRect();
-                    card.style.top = slotRect.top + 'px';
-                    card.style.left = slotRect.left + 'px';
-                }, i * 50);
+                    const sRect = slot.getBoundingClientRect();
+                    card.style.top = sRect.top + 'px';
+                    card.style.left = sRect.left + 'px';
+                }, i * 60);
 
                 card.onclick = () => handleFlip(card);
             });
-            setTimeout(() => { canFlip = true; }, 24 * 50);
+            setTimeout(() => { canFlip = true; }, 24 * 60);
         }
 
         function handleFlip(card) {
             if (!canFlip || flipped.includes(card) || card.classList.contains('flipped')) return;
-            
             card.classList.add('flipped');
             flipped.push(card);
-
-            if (flipped.length === 2) {
-                checkMatch();
-            }
+            if (flipped.length === 2) checkMatch();
         }
 
         function checkMatch() {
@@ -197,28 +188,24 @@
             const [c1, c2] = flipped;
             
             if (c1.dataset.val === c2.dataset.val) {
-                // MAGNETIC MATCH
+                // MAGNETIC MERGE TO DECK
                 setTimeout(() => {
-                    const deckRect = deck.getBoundingClientRect();
+                    const dRect = deck.getBoundingClientRect();
                     [c1, c2].forEach(c => {
-                        c.classList.add('returning');
-                        c.style.top = deckRect.top + 'px';
-                        c.style.left = deckRect.left + 'px';
-                        c.style.transform = 'scale(0.2) rotateY(180deg)';
+                        c.classList.add('magnetic-return');
+                        c.style.top = dRect.top + 'px';
+                        c.style.left = dRect.left + 'px';
+                        c.style.transform = 'scale(0.1) rotateY(0deg)';
                         c.style.opacity = '0';
                     });
-                    matchedCount += 2;
-                    flipped = [];
-                    canFlip = true;
-                    if (matchedCount === 24) alert("STARBLOOD CONQUERED");
-                }, 600);
+                    flipped = []; canFlip = true;
+                }, 700);
             } else {
-                // NO MATCH - FORCE TURN OVER
+                // FORCED RESET
                 setTimeout(() => {
                     c1.classList.remove('flipped');
                     c2.classList.remove('flipped');
-                    flipped = [];
-                    canFlip = true;
+                    flipped = []; canFlip = true;
                 }, 1000);
             }
         }
