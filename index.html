@@ -7,6 +7,7 @@
     <style>
         :root {
             --blood: #b30000;
+            --neon-glow: #ffd700; /* Golden bloom */
             --card-w: 85px;
             --card-h: 120px;
         }
@@ -21,6 +22,17 @@
             align-items: center;
             overflow: hidden;
             height: 100vh;
+            position: relative;
+        }
+
+        /* Background Video */
+        .bg-vid {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: -10;
+            opacity: 0.35;
         }
 
         /* Dripping Header */
@@ -43,13 +55,43 @@
             50% { transform: scaleY(1.12) translateY(5px); }
         }
 
-        .bg-vid {
+        /* Landing Page */
+        #landing {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: -10;
-            opacity: 0.35;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            background: rgba(0,0,0,0.8);
+            animation: ripOut 0.8s ease-out;
+        }
+        @keyframes ripOut {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        #username-input {
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            border: 2px solid var(--neon-glow);
+            border-radius: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            text-align: center;
+            box-shadow: 0 0 20px var(--neon-glow), inset 0 0 10px var(--neon-glow);
+            margin-bottom: 20px;
+            width: 250px;
+        }
+        #start-btn {
+            padding: 10px 30px;
+            background: var(--blood);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--blood);
         }
 
         /* Game Board */
@@ -68,7 +110,7 @@
             position: relative;
         }
 
-        /* Card (3D flip) */
+        /* Card */
         .card {
             width: 100%;
             height: 100%;
@@ -114,7 +156,7 @@
             transition: box-shadow 0.4s;
         }
 
-        /* Deck Stack (bottom right) */
+        /* Deck Stack */
         .deck-stack {
             position: fixed;
             bottom: 25px;
@@ -142,25 +184,127 @@
             color: var(--blood);
             text-shadow: 1px 1px 2px #000;
         }
+
+        /* Stopwatch */
+        #timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            color: var(--blood);
+            z-index: 100;
+        }
+
+        /* End Game Overlay */
+        #end-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+        #congrats-message {
+            font-size: 3rem;
+            color: var(--blood);
+            text-shadow: 0 0 15px var(--blood);
+            animation: bounceBlood 2s infinite;
+        }
+        @keyframes bounceBlood {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        #leaderboard {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--blood);
+            box-shadow: 0 0 30px var(--blood);
+            border-radius: 10px;
+            max-width: 600px;
+        }
+        .lb-header, .lb-row {
+            display: contents;
+        }
+        .lb-cell {
+            padding: 5px;
+            text-align: center;
+            color: white;
+        }
+        .lb-header .lb-cell {
+            font-weight: bold;
+            color: var(--neon-glow);
+        }
+
+        /* Blood Rain */
+        .rain-drop {
+            position: absolute;
+            width: 5px;
+            height: 20px;
+            background: var(--blood);
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
     </style>
 </head>
 <body>
 
     <video autoplay muted loop playsinline class="bg-vid">
-        <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
+        <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4"> <!-- Placeholder; replace with landing video URL -->
     </video>
+
+    <!-- Landing Page -->
+    <div id="landing">
+        <input id="username-input" type="text" placeholder="Enter Username" maxlength="20">
+        <button id="start-btn">Enter the Void</button>
+    </div>
 
     <div class="header" id="title"></div>
 
+    <div id="timer">00:00</div>
+
     <div id="game-board"></div>
 
-    <div class="deck-stack" id="deck" onclick="initGame()">
+    <div class="deck-stack" id="deck">
         <div class="deck-art" style="transform: translate(-5px, -5px); opacity: 0.6;"></div>
         <div class="deck-art"></div>
         <div class="deck-label">TAP TO SHUFFLE</div>
     </div>
 
+    <!-- End Overlay -->
+    <div id="end-overlay">
+        <div id="congrats-message">Starblood Awakens! Victory in the Cosmos!</div>
+        <div id="leaderboard"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
     <script>
+        // Firebase Config (Replace with your own from Firebase Console)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOCAbC123dEf456GhI789jKl012-MnO",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+
         // Animated Title
         const header = document.getElementById('title');
         "STARBLOOD".split('').forEach((l, i) => {
@@ -185,8 +329,26 @@
 
         let activeFlipped = [];
         let locked = false;
+        let username = '';
+        let startTime = 0;
+        let timerInterval;
+        let matchedPairs = 0;
+        const totalPairs = 12;
         const board = document.getElementById('game-board');
         const deckEl = document.getElementById('deck');
+        const landing = document.getElementById('landing');
+        const endOverlay = document.getElementById('end-overlay');
+        const leaderboardEl = document.getElementById('leaderboard');
+        const timerEl = document.getElementById('timer');
+
+        // Landing Submit
+        document.getElementById('start-btn').addEventListener('click', () => {
+            username = document.getElementById('username-input').value.trim();
+            if (username) {
+                landing.style.display = 'none';
+                deckEl.onclick = initGame; // Enable shuffle
+            }
+        });
 
         function initGame() {
             if (locked) return;
@@ -195,8 +357,9 @@
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             activeFlipped = [];
+            matchedPairs = 0;
 
-            // 24 cards (12 pairs)
+            // Shuffle 24 cards
             let gameCards = [...assets, ...assets].sort(() => Math.random() - 0.5);
 
             gameCards.forEach((frontUrl, i) => {
@@ -213,13 +376,11 @@
                     <div class="face back"></div>
                 `;
 
-                // Position at deck initially
                 const deckRect = deckEl.getBoundingClientRect();
                 card.style.top = deckRect.top + 'px';
                 card.style.left = deckRect.left + 'px';
                 document.body.appendChild(card);
 
-                // Deal animation
                 setTimeout(() => {
                     const slotRect = slot.getBoundingClientRect();
                     card.style.top = slotRect.top + 'px';
@@ -229,7 +390,11 @@
                 card.addEventListener('click', () => flipCard(card));
             });
 
-            // Unlock after dealing
+            // Start timer
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+
             setTimeout(() => { locked = false; }, 80 * 24 + 400);
         }
 
@@ -249,7 +414,7 @@
             const [cardA, cardB] = activeFlipped;
 
             if (cardA.dataset.value === cardB.dataset.value) {
-                // Match → glow → return to deck → vanish
+                matchedPairs++;
                 setTimeout(() => {
                     cardA.classList.add('matched-glow');
                     cardB.classList.add('matched-glow');
@@ -262,13 +427,17 @@
                             c.style.left = deckRect.left + 'px';
                             c.style.transform = 'scale(0.08) rotateY(0deg)';
                             c.style.opacity = '0';
+                            setTimeout(() => c.remove(), 1200);
                         });
                         activeFlipped = [];
                         locked = false;
+
+                        if (matchedPairs === totalPairs) {
+                            endGame();
+                        }
                     }, 600);
                 }, 400);
             } else {
-                // No match → flip back
                 setTimeout(() => {
                     cardA.classList.remove('flipped');
                     cardB.classList.remove('flipped');
@@ -278,8 +447,66 @@
             }
         }
 
-        // Optional: start game automatically on load (comment out if you want tap-only)
-        // initGame();
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            timerEl.textContent = `${mins}:${secs}`;
+        }
+
+        async function endGame() {
+            clearInterval(timerInterval);
+            const time = Math.floor((Date.now() - startTime) / 1000);
+            const date = new Date().toLocaleDateString();
+
+            // Save to Firebase
+            await db.collection('scores').add({
+                username,
+                time,
+                date,
+                timestamp: firebase.firestore.Timestamp.now()
+            });
+
+            // Show overlay
+            endOverlay.style.display = 'flex';
+
+            // Blood Rain
+            createBloodRain();
+
+            // Load Leaderboard
+            const q = db.collection('scores').orderBy('time', 'asc').limit(10);
+            const snapshot = await q.get();
+            let entries = [];
+            snapshot.forEach(doc => entries.push(doc.data()));
+
+            // Display
+            leaderboardEl.innerHTML = `
+                <div class="lb-cell lb-header">Rank</div>
+                <div class="lb-cell lb-header">Username</div>
+                <div class="lb-cell lb-header">Time (s)</div>
+                <div class="lb-cell lb-header">Date</div>
+            `;
+            entries.forEach((entry, i) => {
+                leaderboardEl.innerHTML += `
+                    <div class="lb-cell">${i + 1}</div>
+                    <div class="lb-cell">${entry.username}</div>
+                    <div class="lb-cell">${entry.time}</div>
+                    <div class="lb-cell">${entry.date}</div>
+                `;
+            });
+        }
+
+        function createBloodRain() {
+            for (let i = 0; i < 100; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.style.left = `${Math.random() * 100}vw`;
+                drop.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                drop.style.animationDelay = `${Math.random() * 2}s`;
+                document.body.appendChild(drop);
+                setTimeout(() => drop.remove(), 5000);
+            }
+        }
     </script>
 </body>
 </html>
