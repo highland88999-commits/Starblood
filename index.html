@@ -19,7 +19,7 @@
             overflow: hidden; height: 100vh;
         }
 
-        /* Distortion Assets */
+        /* Distortion Logic */
         #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.3s ease; }
         .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
         .push-active #video-container { filter: url(#push-distort-strong); }
@@ -40,10 +40,9 @@
         .slot { 
             width: var(--card-w); height: var(--card-h); 
             border: 1px solid rgba(138, 0, 0, 0.15); border-radius: 8px; 
-            position: relative; overflow: hidden; /* Prevent overflow as requested */
+            position: relative; overflow: hidden;
         }
 
-        /* Card Mechanics */
         .card {
             width: var(--card-w); height: var(--card-h);
             position: absolute; transform-style: preserve-3d;
@@ -51,7 +50,7 @@
             cursor: pointer; z-index: 10;
         }
         .card.flipped { transform: rotateY(180deg); }
-        .card:active { transform: scale(1.05); } /* Touch feedback */
+        .card:active { transform: scale(1.05); }
         .card.returning { z-index: 1000; pointer-events: none; transition: all 1s ease-in; }
 
         .face {
@@ -65,7 +64,7 @@
 
         .matched-glow { box-shadow: 0 0 25px var(--blood-glow) !important; border-color: #ff0000 !important; }
 
-        /* UI Elements */
+        /* Landing */
         #landing {
             position: fixed; inset: 0; z-index: 300; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -73,6 +72,26 @@
         }
         .intro-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         
+        .landing-content {
+            position: relative; z-index: 10; text-align: center; padding: 40px;
+            background: rgba(0,0,0,0.7); border-radius: 12px; backdrop-filter: blur(15px);
+            border: 1px solid var(--blood-dark);
+        }
+
+        #username-input {
+            font-size: 1.2rem; padding: 10px; border: 1px solid var(--blood-dark);
+            background: #110000; color: white; text-align: center; margin-bottom: 8px;
+            width: 220px;
+        }
+
+        .prompt-text {
+            color: #ff3333;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            opacity: 0.9;
+            letter-spacing: 1px;
+        }
+
         .header { margin-top: 20px; display: flex; gap: 8px; z-index: 100; opacity: 0; transition: opacity 1s; }
         .letter { font-size: 2.8rem; font-weight: 900; color: var(--blood-glow); text-shadow: 0 0 10px var(--blood-glow); }
 
@@ -112,7 +131,12 @@
         <video autoplay muted loop playsinline class="intro-vid">
             <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
         </video>
-        <button style="position:relative; z-index:10; padding:15px 40px; background:rgba(0,0,0,0.6); border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer;" onclick="enterVoid()">DECRYPT IDENTITY</button>
+        <div class="landing-content">
+            <input id="username-input" type="text" placeholder="ID KEY" maxlength="12">
+            <div class="prompt-text">Pick a username</div>
+            <br>
+            <button style="padding:15px 40px; background:rgba(0,0,0,0.6); border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer;" onclick="enterVoid()">DECRYPT IDENTITY</button>
+        </div>
     </div>
 
     <div class="header" id="title"></div>
