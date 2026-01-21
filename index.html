@@ -8,108 +8,114 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff3333;
-            /* Dynamic sizing: adjust card size based on the smaller screen dimension */
-            --card-w: clamp(60px, 18vw, 100px); 
+            --card-w: clamp(70px, 18vw, 95px); 
             --card-h: calc(var(--card-w) * 1.4);
-            --gap: clamp(6px, 2vw, 15px);
+            --gap: clamp(8px, 2vw, 15px);
         }
 
         body {
             margin: 0; background: #000; color: white;
             font-family: 'Courier New', monospace;
             display: flex; flex-direction: column; align-items: center;
-            height: 100vh; width: 100vw; 
-            overflow: hidden; 
-            touch-action: none;
-            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+            height: 100vh; width: 100vw; overflow: hidden; touch-action: none;
         }
 
-        /* Video Layer */
-        #video-container { position: fixed; inset: 0; z-index: 1; }
-        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
+        /* Blood Style Floating Header */
+        .blood-header {
+            position: fixed; top: 20px; z-index: 100;
+            color: var(--blood-glow); letter-spacing: 12px;
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            text-shadow: 0 0 15px var(--blood-dark);
+            pointer-events: none; opacity: 0.9; text-align: center; width: 100%;
+        }
 
-        /* Responsive Grid Logic */
+        /* MAIN BACKGROUND VIDEO (Vercel Blob) */
+        #video-container { position: fixed; inset: 0; z-index: -1; }
+        .bg-vid-main { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+
+        /* Board Container */
         #game-board {
-            position: relative;
-            z-index: 50; 
-            display: grid; 
-            /* 4 columns for portrait, 5 for landscape */
-            grid-template-columns: repeat(4, 1fr); 
-            gap: var(--gap);
-            margin: auto; /* Centers board vertically and horizontally */
-            padding: 10px;
+            position: relative; z-index: 60; 
+            display: grid; grid-template-columns: repeat(4, 1fr); 
+            gap: var(--gap); margin: auto; padding-top: 80px;
             opacity: 0; transition: opacity 1s;
         }
 
         @media (orientation: landscape) {
-            #game-board { grid-template-columns: repeat(5, 1fr); }
-            :root { --card-w: clamp(50px, 12vh, 90px); } /* Adjust based on height in landscape */
+            #game-board { grid-template-columns: repeat(5, 1fr); padding-top: 50px; }
         }
 
+        /* Card Mechanics */
         .card {
             width: var(--card-w); height: var(--card-h);
-            position: relative; 
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s;
-            -webkit-tap-highlight-color: transparent;
+            position: relative; transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
         .card.flipped { transform: rotateY(180deg); }
 
         .face {
-            position: absolute; inset: 0;
-            backface-visibility: hidden; 
-            -webkit-backface-visibility: hidden;
-            border-radius: 8px;
-            border: 1px solid var(--blood-dark); 
-            overflow: hidden;
+            position: absolute; inset: 0; backface-visibility: hidden; 
+            -webkit-backface-visibility: hidden; border-radius: 8px;
+            border: 1px solid var(--blood-dark); overflow: hidden;
+            background: #000;
         }
         
+        /* The Face Side (api/asset images) */
         .front { 
             transform: rotateY(180deg); 
             background-size: cover; 
-            background-position: center;
+            background-position: center; 
         }
-        
+
+        /* The Back Side (Card Back Video) */
         .back-video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* UI Elements */
+        /* UI / Deck Mechanics */
         #deck-frame {
             position: fixed; bottom: 20px; right: 20px;
-            width: 60px; height: 80px;
+            width: 60px; height: 80px; z-index: 80;
             background: rgba(40, 0, 0, 0.3); backdrop-filter: blur(10px);
             border: 1px solid var(--blood-glow); border-radius: 10px;
-            z-index: 100; transition: all 0.6s ease;
-            overflow: hidden;
+            overflow: hidden; transition: all 0.6s ease;
         }
-        #deck-frame.minimized { width: 45px; height: 45px; border-radius: 50%; bottom: 15px; right: 15px; }
+        #deck-frame.minimized { width: 45px; height: 45px; border-radius: 50%; }
 
+        /* LANDING PAGE (Local bg folder video) */
         #landing {
             position: fixed; inset: 0; z-index: 500; background: #000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease;
         }
-
+        .landing-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.7; z-index: -1; }
+        
         .btn-void {
-            padding: 15px 40px; border: 2px solid var(--blood-glow);
-            background: rgba(0,0,0,0.5); color: var(--blood-glow);
-            font-size: 1.2rem; cursor: pointer; letter-spacing: 3px;
-            box-shadow: 0 0 15px var(--blood-dark);
+            padding: 18px 45px; border: 2px solid var(--blood-glow);
+            background: rgba(0,0,0,0.7); color: var(--blood-glow);
+            font-size: 1.3rem; cursor: pointer; letter-spacing: 6px;
+            text-shadow: 0 0 10px var(--blood-dark);
         }
     </style>
 </head>
 <body>
 
+<div class="blood-header">STARBLOOD</div>
+
 <div id="video-container">
-    <video autoplay muted loop playsinline class="bg-vid">
-        <source src="./media/2026-01-20-125904299.mp4" type="video/mp4">
+    <video autoplay muted loop playsinline class="bg-vid-main">
+        <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
     </video>
 </div>
 
 <div id="landing">
+    <video autoplay muted loop playsinline class="landing-vid">
+        <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
+    </video>
     <button class="btn-void" onclick="enterVoid()">ENTER VOID</button>
 </div>
 
 <div id="deck-frame">
-    <video autoplay muted loop playsinline class="bg-vid" style="opacity: 0.6;">
+    <video autoplay muted loop playsinline class="back-video" style="opacity: 0.8;">
         <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
     </video>
 </div>
@@ -117,6 +123,7 @@
 <div id="game-board"></div>
 
 <script>
+    // Folder specific mapping for card faces
     const faceFiles = [
         "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
         "./api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
@@ -135,14 +142,17 @@
     let locked = false;
 
     function enterVoid() {
-        document.getElementById('landing').style.display = 'none';
-        document.getElementById('game-board').style.opacity = '1';
-        buildBoard();
-        ritualDownload();
+        document.getElementById('landing').style.opacity = '0';
         setTimeout(() => {
-            document.getElementById('deck-frame').classList.add('minimized');
-            deployCards();
-        }, 1000);
+            document.getElementById('landing').style.display = 'none';
+            document.getElementById('game-board').style.opacity = '1';
+            buildBoard();
+            ritualDownload();
+            setTimeout(() => {
+                document.getElementById('deck-frame').classList.add('minimized');
+                deployCards();
+            }, 1000);
+        }, 800);
     }
 
     function buildBoard() {
@@ -169,7 +179,6 @@
         const deckPos = document.getElementById('deck-frame').getBoundingClientRect();
         document.querySelectorAll('.card').forEach(card => {
             const rect = card.getBoundingClientRect();
-            // Calculate relative offset to move card into the deck
             const x = (deckPos.left + deckPos.width/2) - (rect.left + rect.width/2);
             const y = (deckPos.top + deckPos.height/2) - (rect.top + rect.height/2);
             card.style.transition = 'none';
@@ -182,6 +191,7 @@
             setTimeout(() => {
                 card.style.transition = "transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s";
                 card.style.transform = `translate(0, 0) scale(1)`;
+                
                 card.onclick = () => {
                     if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
                     card.classList.add('flipped');
@@ -198,7 +208,6 @@
     function checkMatch() {
         const [a, b] = flipped;
         if (a.dataset.val === b.dataset.val) {
-            // Match Logic: Magnetic pull to deck
             setTimeout(() => {
                 const deckPos = document.getElementById('deck-frame').getBoundingClientRect();
                 [a, b].forEach(card => {
@@ -207,11 +216,10 @@
                     const y = (deckPos.top + deckPos.height/2) - (rect.top + rect.height/2);
                     card.style.transform = `translate(${x}px, ${y}px) rotateY(180deg) scale(0.1)`;
                     card.style.opacity = "0";
-                    card.style.pointerEvents = "none";
                 });
                 flipped = [];
                 locked = false;
-            }, 500);
+            }, 600);
         } else {
             setTimeout(() => {
                 a.classList.remove('flipped');
