@@ -8,98 +8,72 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff3333;
-            --card-w: 78px;
-            --card-h: 112px;
-            --gap: 14px;
+            --card-w: 85px;
+            --card-h: 120px;
+            --gap: 12px;
         }
 
         body {
-            margin: 0;
-            background: #000;
-            color: white;
+            margin: 0; background: #000; color: white;
             font-family: 'Courier New', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow: hidden;
-            height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            height: 100vh; overflow: hidden;
         }
 
-        /* Distortion Effects */
+        /* Distortion & Flash Effects */
         #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.4s ease; }
         .push-active #video-container { filter: url(#push-distort-strong); }
-        
         #entity-flash { 
             position: fixed; inset: 0; pointer-events: none; z-index: 260; opacity: 0; 
             transition: opacity 0.4s ease-in-out;
             background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.45) 0%, transparent 70%);
-            mix-blend-mode: screen;
         }
 
-        .bg-vid, .intro-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
-        .intro-vid { opacity: 0.8; position: absolute; inset: 0; }
+        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
 
-        /* Game Board */
+        /* Board Layout */
         #game-board {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--gap);
-            margin-top: 40px;
-            opacity: 0;
-            transition: opacity 1s;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: var(--gap); margin-top: 30px; opacity: 0; transition: opacity 1s;
         }
 
-        .slot {
-            width: var(--card-w);
-            height: var(--card-h);
-            border: 1px solid rgba(138,0,0,0.4);
-            border-radius: 8px;
-            background: rgba(10,0,0,0.4);
-            position: relative;
-        }
-
+        /* Card Setup */
         .card {
-            width: 100%; height: 100%; position: relative;
-            transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.5s;
+            width: var(--card-w); height: var(--card-h);
+            position: relative; transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
             cursor: pointer;
         }
         .card.flipped { transform: rotateY(180deg); }
 
         .face {
             position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden; border-radius: 8px;
-            border: 2px solid var(--blood-dark); background-size: cover; background-position: center;
+            backface-visibility: hidden; border-radius: 10px;
+            border: 1px solid var(--blood-dark); overflow: hidden;
         }
-        .front { transform: rotateY(180deg); }
-        .back { background-image: url('./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg'); }
+        
+        /* Front = Image Face | Back = Video Face */
+        .front { transform: rotateY(180deg); background-size: cover; background-position: center; }
+        .back-video { width: 100%; height: 100%; object-fit: cover; }
 
-        #landing {
-            position: fixed; inset: 0; z-index: 300; background: #000;
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 1.5s ease-out;
+        /* Leaderboard / Landing UI */
+        #landing, #leaderboard-overlay {
+            position: fixed; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 400; background: #000;
         }
-
-        .landing-button {
-            padding: 15px 60px; background: transparent; border: 2px solid var(--blood-glow);
-            color: var(--blood-glow); font-size: 1.4rem; cursor: pointer; letter-spacing: 3px;
-            z-index: 301;
-        }
-
-        /* Leaderboard Bloom Frame */
-        #leaderboard-overlay {
-            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
-            display: none; flex-direction: column; align-items: center;
-            justify-content: center; z-index: 500;
+        .landing-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .btn-void {
+            z-index: 10; padding: 15px 50px; background: transparent; 
+            border: 2px solid var(--blood-glow); color: var(--blood-glow);
+            font-size: 1.2rem; cursor: pointer; letter-spacing: 5px;
+            box-shadow: 0 0 15px var(--blood-dark);
         }
 
-        .holoframe {
-            width: 90%; max-width: 500px; background: rgba(40, 0, 0, 0.2);
-            backdrop-filter: blur(15px); border: 1px solid var(--blood-glow);
-            border-radius: 20px; padding: 20px; box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
+        .holo-frame {
+            background: rgba(20, 0, 0, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid var(--blood-glow); padding: 20px; border-radius: 15px;
+            width: 80%; max-width: 450px; text-align: center;
         }
-
-        .scroll-area { max-height: 300px; overflow-y: auto; margin: 20px 0; }
-        .restart-strip { width: 100%; border-top: 1px solid var(--blood-dark); padding-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
@@ -107,8 +81,8 @@
 <svg width="0" height="0" style="position: absolute;">
     <defs>
         <filter id="push-distort-strong">
-            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G" />
         </filter>
     </defs>
 </svg>
@@ -122,29 +96,20 @@
 </div>
 
 <div id="landing">
-    <video autoplay muted loop playsinline class="intro-vid">
-        <source src="./media/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
+    <video autoplay muted loop playsinline class="landing-vid">
+        <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
     </video>
-    <button class="landing-button" onclick="enterVoid()">ENTER</button>
+    <button class="btn-void" onclick="enterVoid()">ENTER VOID</button>
 </div>
 
-<h1 style="color:var(--blood-glow); letter-spacing: 8px; margin-top: 20px;">STARBLOOD</h1>
+<h1 style="color:var(--blood-glow); letter-spacing: 12px; margin: 20px 0 10px 0;">STARBLOOD</h1>
 <div id="game-board"></div>
 
-<div id="leaderboard-overlay">
-    <div class="holoframe">
-        <h2 style="text-align:center; color:var(--blood-glow)">RECORDS</h2>
-        <div class="scroll-area">
-            <table style="width:100%; border-collapse: collapse;">
-                <thead style="color:var(--blood-glow); font-size: 0.7rem;">
-                    <tr><th>#</th><th>NAME</th><th>RECORD</th><th>DATE</th></tr>
-                </thead>
-                <tbody id="leaderboard-body" style="text-align: center;"></tbody>
-            </table>
-        </div>
-        <div class="restart-strip">
-            <button class="landing-button" style="font-size: 1rem;" onclick="location.reload()">RESTART</button>
-        </div>
+<div id="leaderboard-overlay" style="display:none; background: rgba(0,0,0,0.85);">
+    <div class="holo-frame">
+        <h2 style="color:var(--blood-glow); letter-spacing: 5px;">RECORDS</h2>
+        <div id="score-list" style="margin: 20px 0; max-height: 250px; overflow-y: auto;"></div>
+        <button class="btn-void" style="font-size: 0.8rem;" onclick="location.reload()">RESTART</button>
     </div>
 </div>
 
@@ -162,21 +127,20 @@
         "./api/asset/Screenshot_2026-01-20-15-07-08-09.jpg"
     ];
 
-    let activeFlipped = [];
-    let locked = false;
+    // PATH TO YOUR CARD BACK VIDEO
+    const cardBackVid = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4"; 
+
+    let flipped = [];
     let matches = 0;
-    let startTime;
+    let timerStart;
 
     function triggerFacePush() {
         document.body.classList.add('push-active');
         document.getElementById('entity-flash').style.opacity = '1';
         setTimeout(() => {
-            document.getElementById('entity-flash').style.opacity = '0.3';
-            setTimeout(() => {
-                document.body.classList.remove('push-active');
-                document.getElementById('entity-flash').style.opacity = '0';
-            }, 600);
-        }, 400);
+            document.body.classList.remove('push-active');
+            document.getElementById('entity-flash').style.opacity = '0';
+        }, 800);
     }
 
     function enterVoid() {
@@ -184,70 +148,76 @@
         setTimeout(() => {
             document.getElementById('landing').style.display = 'none';
             document.getElementById('game-board').style.opacity = '1';
-            startTime = Date.now();
-            initGame();
-        }, 1500);
+            timerStart = Date.now();
+            buildBoard();
+        }, 1000);
     }
 
-    function initGame() {
+    function buildBoard() {
         const board = document.getElementById('game-board');
-        let deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
-        board.innerHTML = '';
+        const deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+        
         deck.forEach(img => {
-            const slot = document.createElement('div');
-            slot.className = 'slot';
             const card = document.createElement('div');
             card.className = 'card';
             card.dataset.val = img;
-            card.innerHTML = `<div class="face front" style="background-image:url('${img}')"></div><div class="face back"></div>`;
+            
+            // Back uses a video element, Front uses a div with background-image
+            card.innerHTML = `
+                <div class="face front" style="background-image:url('${img}')"></div>
+                <div class="face back">
+                    <video autoplay muted loop playsinline class="back-video">
+                        <source src="${cardBackVid}" type="video/mp4">
+                    </video>
+                </div>
+            `;
+            
             card.onclick = () => {
-                if (locked || card.classList.contains('flipped')) return;
-                card.classList.add('flipped');
-                activeFlipped.push(card);
-                if (activeFlipped.length === 2) {
-                    locked = true;
-                    checkMatch();
+                if (flipped.length < 2 && !card.classList.contains('flipped')) {
+                    card.classList.add('flipped');
+                    flipped.push(card);
+                    if (flipped.length === 2) checkMatch();
                 }
             };
-            slot.appendChild(card);
-            board.appendChild(slot);
+            board.appendChild(card);
         });
     }
 
     function checkMatch() {
-        const [c1, c2] = activeFlipped;
-        if (c1.dataset.val === c2.dataset.val) {
+        const [a, b] = flipped;
+        if (a.dataset.val === b.dataset.val) {
             matches++;
+            flipped = [];
             if (matches === 10) {
-                const finalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                const totalTime = ((Date.now() - timerStart) / 1000).toFixed(2);
                 triggerFacePush();
-                setTimeout(() => showLeaderboard(finalTime), 1200);
+                setTimeout(() => finalizeRecord(totalTime), 1000);
             }
-            activeFlipped = [];
-            locked = false;
         } else {
             setTimeout(() => {
-                c1.classList.remove('flipped');
-                c2.classList.remove('flipped');
-                activeFlipped = [];
-                locked = false;
+                a.classList.remove('flipped');
+                b.classList.remove('flipped');
+                flipped = [];
             }, 1000);
         }
     }
 
-    function showLeaderboard(time) {
-        const name = prompt("THE VOID HAS RECORDED YOU. ENTER NAME:") || "ANONYMOUS";
-        const entry = { name, time: parseFloat(time), date: new Date().toLocaleDateString() };
+    function finalizeRecord(time) {
+        const name = prompt("RECORD SECURED. ENTER IDENTITY:") || "NAMELESS";
+        const record = { name, time: parseFloat(time), date: new Date().toLocaleDateString() };
         
-        let scores = JSON.parse(localStorage.getItem('starblood_records') || '[]');
-        scores.push(entry);
-        scores.sort((a, b) => a.time - b.time);
-        localStorage.setItem('starblood_records', JSON.stringify(scores));
+        let localData = JSON.parse(localStorage.getItem('star_records') || '[]');
+        localData.push(record);
+        localData.sort((a,b) => a.time - b.time);
+        localStorage.setItem('star_records', JSON.stringify(localData));
 
-        const body = document.getElementById('leaderboard-body');
-        body.innerHTML = scores.map((s, i) => `
-            <tr><td>${i+1}</td><td>${s.name}</td><td>${s.time}s</td><td>${s.date}</td></tr>
+        const list = document.getElementById('score-list');
+        list.innerHTML = localData.map((r, i) => `
+            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #300;">
+                <span>${i+1}. ${r.name}</span> <strong>${r.time}s</strong>
+            </div>
         `).join('');
+        
         document.getElementById('leaderboard-overlay').style.display = 'flex';
     }
 </script>
