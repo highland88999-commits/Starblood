@@ -1,0 +1,91 @@
+/* Leaderboard Container */
+#leaderboard-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: none; /* Hidden until game ends */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+}
+
+.holoframe {
+    width: 90%;
+    max-width: 600px;
+    background: rgba(40, 0, 0, 0.2);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--blood-glow);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.2), inset 0 0 15px rgba(255, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+/* The "Bloom Orb" Decoration */
+.holoframe::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 100px;
+    background: var(--blood-glow);
+    filter: blur(80px);
+    opacity: 0.4;
+    z-index: -1;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #ffcccc;
+    text-align: left;
+}
+
+.leaderboard-table th {
+    border-bottom: 1px solid var(--blood-dark);
+    padding: 10px;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    color: var(--blood-glow);
+}
+
+.leaderboard-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid rgba(138, 0, 0, 0.2);
+    font-size: 0.9rem;
+}
+
+.scroll-area {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--blood-dark) transparent;
+}
+
+/* Restart Strip */
+.restart-strip {
+    margin-top: 20px;
+    width: 100%;
+    text-align: center;
+    border-top: 1px solid var(--blood-dark);
+    padding-top: 15px;
+}
+
+.restart-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid var(--blood-glow);
+    padding: 10px 30px;
+    cursor: pointer;
+    letter-spacing: 5px;
+    transition: 0.3s;
+}
+
+.restart-btn:hover {
+    background: var(--blood-glow);
+    box-shadow: 0 0 20px var(--blood-glow);
+}
