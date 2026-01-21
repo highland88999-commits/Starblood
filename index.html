@@ -8,9 +8,9 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff0000;
-            --card-w: 82px;
-            --card-h: 118px;
-            --gap: 12px;
+            --card-w: 78px;
+            --card-h: 112px;
+            --gap: 14px;
         }
 
         body {
@@ -58,8 +58,9 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: var(--gap);
-            margin-top: 30px;
+            margin-top: 40px;
             max-width: calc(4 * var(--card-w) + 3 * var(--gap));
+            justify-content: center;
             perspective: 1200px;
             opacity: 0;
             transition: opacity 1s;
@@ -68,7 +69,7 @@
         .slot {
             width: var(--card-w);
             height: var(--card-h);
-            border: 1px solid rgba(138, 0, 0, 0.2);
+            border: 1px solid rgba(138,0,0,0.2);
             border-radius: 8px;
             position: relative;
             overflow: hidden;
@@ -78,9 +79,7 @@
         .card {
             width: 100%;
             height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative; /* inside slot, no overflow */
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4,0,0.2,1),
                         opacity 0.5s;
@@ -173,9 +172,19 @@
         }
 
         @media (max-width: 600px) {
-            :root { --card-w: 70px; --card-h: 100px; --gap: 8px; }
-            #game-board { margin-top: 20px; }
-            .deck-stack { width: 70px; height: 100px; }
+            :root {
+                --card-w: 65px;
+                --card-h: 94px;
+                --gap: 10px;
+            }
+            #game-board {
+                margin-top: 20px;
+                max-width: calc(4 * var(--card-w) + 3 * var(--gap));
+            }
+            .deck-stack {
+                width: 70px;
+                height: 100px;
+            }
         }
     </style>
 </head>
@@ -225,7 +234,7 @@
             titleEl.appendChild(span);
         });
 
-        // 10 unique Dropbox images — each used twice (20 cards / 10 pairs)
+        // 10 unique images — each used twice
         const faceFiles = [
             "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
@@ -288,17 +297,7 @@
                     <div class="face back"></div>
                 `;
 
-                const dRect = deckEl.getBoundingClientRect();
-                card.style.top = dRect.top + 'px';
-                card.style.left = dRect.left + 'px';
-                document.body.appendChild(card);
-
-                setTimeout(() => {
-                    const sRect = slot.getBoundingClientRect();
-                    card.style.top = sRect.top + 'px';
-                    card.style.left = sRect.left + 'px';
-                    if (i === gameDeck.length - 1) locked = false;
-                }, i * 60);
+                slot.appendChild(card); // card inside slot = no overlap
 
                 card.onclick = () => {
                     if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
@@ -310,6 +309,8 @@
                     }
                 };
             });
+
+            setTimeout(() => locked = false, 800);
         }
 
         function checkMatch() {
@@ -323,8 +324,6 @@
                         const dRect = deckEl.getBoundingClientRect();
                         [c1, c2].forEach(c => {
                             c.classList.add('returning');
-                            c.style.top = dRect.top + 'px';
-                            c.style.left = dRect.left + 'px';
                             c.style.transform = 'scale(0.1) rotateY(0deg)';
                             c.style.opacity = '0';
                             setTimeout(() => c.remove(), 1200);
