@@ -19,13 +19,10 @@
             overflow: hidden; height: 100vh;
         }
 
-        /* Distortion Classes */
+        /* SVG Distortion logic */
         #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.3s ease; }
         .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
-        
-        .push-active #video-container { 
-            filter: url(#push-distort-strong); 
-        }
+        .push-active #video-container { filter: url(#push-distort-strong); }
 
         #entity-flash { 
             position: fixed; inset: 0; pointer-events: none; z-index: 260; 
@@ -37,7 +34,7 @@
         /* 4x5 Portrait Grid */
         #game-board {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            margin-top: 30px; perspective: 1200px;
+            margin-top: 25px; perspective: 1200px;
             opacity: 0; transition: opacity 1s;
         }
         .slot { width: var(--card-w); height: var(--card-h); border: 1px solid rgba(138, 0, 0, 0.2); border-radius: 8px; }
@@ -56,7 +53,9 @@
             backface-visibility: hidden; border-radius: 8px;
             border: 2px solid var(--blood-dark); background-size: cover; background-position: center;
         }
+        /* Front of card (Gem side) */
         .front { transform: rotateY(180deg); background-color: #080808; }
+        /* Back of card (Blood Drop side) */
         .back { background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg'); }
         
         .matched-glow { box-shadow: 0 0 25px var(--blood-glow) !important; border-color: #ff0000 !important; }
@@ -66,6 +65,7 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 1.5s ease-out;
         }
+        #start-btn { padding: 15px 40px; background: transparent; border: 2px solid var(--blood-glow); color: var(--blood-glow); cursor: pointer; font-family: inherit; font-size: 1.2rem; }
 
         .deck-stack {
             position: fixed; bottom: 30px; right: 30px; width: 75px; height: 110px;
@@ -78,13 +78,13 @@
         }
     </style>
 </head>
-<body class="">
+<body>
 
     <svg width="0" height="0" style="position: absolute;">
         <defs>
-            <filter id="push-distort-strong" x="-50%" y="-50%" width="200%" height="200%">
+            <filter id="push-distort-strong">
                 <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>
@@ -98,7 +98,7 @@
     </div>
 
     <div id="landing">
-        <button id="start-btn" style="padding: 15px 40px; background: transparent; border: 2px solid var(--blood-glow); color: var(--blood-glow); cursor: pointer;" onclick="enterVoid()">INITIATE SEQUENCE</button>
+        <button id="start-btn" onclick="enterVoid()">INITIATE SEQUENCE</button>
     </div>
 
     <div id="game-board"></div>
@@ -110,6 +110,8 @@
 
     <script>
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
+        
+        // Exactly 10 gems for 10 pairs (20 cards)
         const faceFiles = [
             "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", 
             "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", 
@@ -126,17 +128,13 @@
                 document.getElementById('landing').style.display = 'none';
                 document.getElementById('game-board').style.opacity = '1';
                 document.getElementById('deck').style.opacity = '1';
+                initGame(); // Auto-start the deal
             }, 1500);
         }
 
         function triggerGlitch() {
             document.body.classList.add('push-active');
             document.getElementById('entity-flash').style.opacity = '1';
-            
-            // Randomize the filter noise seed for a different look each time
-            const filterNoise = document.querySelector('feTurbulence');
-            filterNoise.setAttribute('seed', Math.random() * 100);
-
             setTimeout(() => {
                 document.body.classList.remove('push-active');
                 document.getElementById('entity-flash').style.opacity = '0';
@@ -149,6 +147,7 @@
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             
+            // 10 pairs total
             let gameCards = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
 
             gameCards.forEach((file, i) => {
@@ -160,8 +159,8 @@
                 card.className = 'card';
                 card.dataset.val = file;
                 
-                // Fix: Ensure standard filenames get the path prefix
-                const imgUrl = file.startsWith('http') ? file : `${path}${file}`;
+                // FIXED URL MAPPING: This ensures the image actually loads
+                const imgUrl = `${path}${file}`;
                 
                 card.innerHTML = `
                     <div class="face front" style="background-image: url('${imgUrl}');"></div>
@@ -192,9 +191,7 @@
             locked = true;
             const [c1, c2] = activeFlipped;
             if (c1.dataset.val === c2.dataset.val) {
-                // Trigger the distortion on every successful match
-                triggerGlitch();
-                
+                triggerGlitch(); // Trigger your SVG distortion on match
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
                     c2.classList.add('matched-glow');
