@@ -19,7 +19,7 @@
             background:#000; color:white;
             font-family:'Courier New', monospace;
             height:100vh; width:100vw;
-            overflow:hidden; touch-action:none;
+            overflow:hidden;
             -webkit-user-select:none; user-select:none;
         }
 
@@ -54,8 +54,9 @@
             width:var(--card-w); height:var(--card-h);
             position:relative; transform-style:preserve-3d;
             transition:transform 0.65s cubic-bezier(0.23,1,0.32,1);
-            cursor:pointer; touch-action:manipulation;
+            cursor:pointer;
             -webkit-tap-highlight-color:transparent;
+            will-change: transform; /* GPU hint for smoother mobile rotation */
         }
 
         .card.flipped { transform:rotateY(180deg); }
@@ -67,12 +68,20 @@
             overflow:hidden; background:#000;
         }
 
-        /* UPDATED TEST STYLE BELOW */
         .front { 
             transform: rotateY(180deg); 
-            background: lime !important; /* TEST: should turn green on flip */ 
             background-size: cover; 
             background-position: center; 
+            z-index: 2;
+        }
+
+        .back {
+            z-index: 1;
+        }
+
+        .card.flipped .back {
+            opacity: 0; /* Hide video on flip to prevent overlap */
+            transition: opacity 0.4s ease;
         }
 
         .back-video {
@@ -244,8 +253,7 @@ function buildBoard() {
             </div>
         `;
 
-        card.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
+        card.addEventListener('click', () => {  // Changed to 'click' for reliable tap on Android
             if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
 
             card.classList.add('flipped');
