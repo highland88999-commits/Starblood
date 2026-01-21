@@ -21,106 +21,66 @@
             height: 100dvh; width:100vw;
             overflow:hidden; touch-action:none;
             display: flex; flex-direction: column;
-            perspective: 1000px;
         }
 
-        /* --- BACKGROUND VIDEO (NEXUS RENDER) --- */
+        /* --- BACKGROUND --- */
         #nexus-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -100;
-            pointer-events: none;
+            position: fixed; inset: 0; z-index: -100; pointer-events: none;
         }
-        #nexus-bg video {
-            width: 100%; height: 100%; object-fit: cover;
-            opacity: 0.45; filter: contrast(1.2) brightness(0.8);
-        }
+        #nexus-bg video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
-        /* --- FLOATING BLOOD TITLE --- */
-        .title-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px 0 10px;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
+        /* --- TITLE --- */
+        .title-container { display: flex; justify-content: center; padding: 20px 0; z-index: 100; }
         .blood-letter {
-            font-size: clamp(2rem, 8vw, 4rem);
-            font-weight: 900;
-            color: var(--blood-glow);
-            text-shadow: 0 0 10px var(--blood-dark), 2px 5px 15px #000;
-            margin: 0 4px;
-            display: inline-block;
-            animation: floatLetter 4s ease-in-out infinite;
-            letter-spacing: -2px;
+            font-size: clamp(2rem, 8vw, 4rem); color: var(--blood-glow);
+            text-shadow: 0 0 10px var(--blood-dark); margin: 0 4px;
+            animation: float 4s ease-in-out infinite;
         }
-
-        @keyframes floatLetter {
-            0%, 100% { transform: translateY(0) rotate(0deg); filter: hue-rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(3deg); filter: hue-rotate(-10deg); }
-        }
-
-        /* --- THE DECK COMMANDER --- */
-        #deck-frame {
-            position:fixed; bottom:20px; right:20px; 
-            width:60px; height:85px; z-index:1100;
-            border:2px solid var(--blood-glow); border-radius:8px;
-            background: rgba(30,0,0,0.6); backdrop-filter: blur(5px);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 15px var(--blood-dark);
-            transition: 0.3s;
-        }
-        #deck-frame:active { transform: scale(0.9); }
-        #deck-frame::after { content: 'SHUFFLE'; font-size: 8px; color: var(--blood-glow); letter-spacing: 1px; }
+        @keyframes float { 50% { transform: translateY(-10px); } }
 
         /* --- GAME BOARD --- */
         #game-board {
-            flex: 1; display:grid; 
-            grid-template-columns:repeat(4, 1fr);
+            flex: 1; display:grid; grid-template-columns:repeat(4, 1fr);
             gap:var(--gap); padding: 0 10px 100px;
             justify-items: center; align-content: center;
-            z-index: 500;
         }
-
         @media (orientation: landscape) { #game-board { grid-template-columns:repeat(5, 1fr); } }
 
-        /* --- SLIDER CARD --- */
         .card-placeholder {
             width: var(--card-w); height: var(--card-h);
-            position: relative; border-radius: 8px;
-            background: rgba(20,0,0,0.15); border: 1px dashed rgba(255,0,0,0.2);
+            background: rgba(40,0,0,0.1); border: 1px dashed #400; border-radius: 8px;
         }
 
+        /* --- CARD ENTITY --- */
         .card-entity {
-            position: absolute; inset: 0;
-            overflow: hidden; border-radius: 8px;
-            border: 1px solid var(--blood-dark);
-            background: #000; 
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s;
-            z-index: 600; pointer-events: auto;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: absolute; width: var(--card-w); height: var(--card-h);
+            border-radius: 8px; border: 1px solid var(--blood-dark);
+            background: #000; z-index: 500; overflow: hidden;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+            will-change: transform;
         }
 
-        .slider-track {
-            display: flex; width: 200%; height: 100%;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
+        .slider-track { display: flex; width: 200%; height: 100%; transition: transform 0.5s ease; }
         .card-entity.active .slider-track { transform: translateX(-50%); }
 
-        .panel { width: 50%; height: 100%; position: relative; }
-        .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
-        .image-panel { background-size: cover; background-position: center; }
+        .panel { width: 50%; height: 100%; }
+        .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        .image-panel { background-size: cover; background-position: center; background-repeat: no-repeat; }
 
-        /* --- SMOKE EFFECT --- */
-        @keyframes smokeToDeck {
-            0% { transform: scale(1); filter: blur(0px) brightness(1); opacity: 1; }
-            40% { transform: scale(1.3) translateY(-20px); filter: blur(6px) brightness(2.5); }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0.1); filter: blur(25px) grayscale(1); opacity: 0; }
+        #deck-frame {
+            position:fixed; bottom:20px; right:20px; width:60px; height:85px;
+            border:2px solid var(--blood-glow); border-radius:8px;
+            background: rgba(30,0,0,0.6); z-index: 1000; cursor: pointer;
         }
-        .smoke-out { animation: smokeToDeck 1.1s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards; }
 
+        .smoke-out { 
+            animation: smokeToDeck 1s forwards; 
+            pointer-events: none;
+        }
+
+        @keyframes smokeToDeck {
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); filter: blur(20px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -132,12 +92,10 @@
 </div>
 
 <div class="title-container" id="blood-title"></div>
-
 <div id="game-board"></div>
 <div id="deck-frame" onclick="commander.shuffleAndDeploy()"></div>
 
 <script>
-// --- ASSET CONFIG ---
 const faceFiles = [
     "./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
     "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
@@ -153,25 +111,22 @@ const faceFiles = [
 
 const videoSrc = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4";
 
-// --- COMMANDER LOGIC ---
 const commander = {
     cards: [],
     selected: [],
     locked: false,
 
     init() {
-        // Build Title
         const titleText = "STARBLOOD";
         const titleContainer = document.getElementById('blood-title');
         titleText.split('').forEach((char, i) => {
             const span = document.createElement('span');
             span.className = 'blood-letter';
             span.textContent = char;
-            span.style.animationDelay = `${i * 0.2}s`; // Independent floating
+            span.style.animationDelay = `${i * 0.1}s`;
             titleContainer.appendChild(span);
         });
 
-        // Build 20 Slots
         const board = document.getElementById('game-board');
         for (let i = 0; i < 20; i++) {
             const slot = document.createElement('div');
@@ -182,11 +137,12 @@ const commander = {
     },
 
     shuffleAndDeploy() {
-        if (this.locked || this.cards.length > 0) return;
+        if (this.cards.length > 0) return;
         this.locked = true;
         
+        const deck = document.getElementById('deck-frame');
+        const deckRect = deck.getBoundingClientRect();
         let deckData = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
-        const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
 
         deckData.forEach((img, i) => {
             const card = document.createElement('div');
@@ -200,41 +156,43 @@ const commander = {
                 </div>
             `;
 
+            // CRITICAL: Append to body FIRST so it exists in DOM
             document.body.appendChild(card);
-            const slot = document.getElementById(`slot-${i}`).getBoundingClientRect();
             
-            // Start at deck
+            // Set initial position at deck
             card.style.left = deckRect.left + 'px';
             card.style.top = deckRect.top + 'px';
-            card.style.width = getComputedStyle(document.documentElement).getPropertyValue('--card-w');
-            card.style.height = getComputedStyle(document.documentElement).getPropertyValue('--card-h');
-            card.style.transform = `scale(0.1)`;
             card.style.opacity = '0';
+            card.style.transform = `scale(0.1)`;
 
-            // Ritual Deal
+            // Get target slot position
+            const slot = document.getElementById(`slot-${i}`);
+            const slotRect = slot.getBoundingClientRect();
+
+            // Trigger move
             setTimeout(() => {
                 card.style.opacity = '1';
-                card.style.transform = `translate(${slot.left - deckRect.left}px, ${slot.top - deckRect.top}px) scale(1)`;
+                const tx = slotRect.left - deckRect.left;
+                const ty = slotRect.top - deckRect.top;
+                card.style.transform = `translate(${tx}px, ${ty}px) scale(1)`;
             }, i * 50);
 
             card.addEventListener('pointerdown', () => this.handleSelection(card));
             this.cards.push(card);
         });
 
+        deck.style.opacity = '0.2';
+        deck.style.pointerEvents = 'none';
         setTimeout(() => { this.locked = false; }, 2200);
-        document.getElementById('deck-frame').style.opacity = '0.3';
-        document.getElementById('deck-frame').style.pointerEvents = 'none';
     },
 
     handleSelection(card) {
         if (this.locked || this.selected.length >= 2 || card.classList.contains('active')) return;
-        
-        card.classList.add('active'); 
+        card.classList.add('active');
         this.selected.push(card);
-
         if (this.selected.length === 2) {
             this.locked = true;
-            setTimeout(() => this.checkMatch(), 800);
+            setTimeout(() => this.checkMatch(), 600);
         }
     },
 
@@ -252,16 +210,14 @@ const commander = {
             this.locked = false;
         } else {
             setTimeout(() => {
-                a.classList.remove('active'); 
-                b.classList.remove('active');
-                this.selected = [];
-                this.locked = false;
-            }, 1000);
+                a.classList.remove('active'); b.classList.remove('active');
+                this.selected = []; this.locked = false;
+            }, 800);
         }
     }
 };
 
-commander.init();
+window.onload = () => commander.init();
 </script>
 </body>
 </html>
