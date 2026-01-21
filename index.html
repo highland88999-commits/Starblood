@@ -23,11 +23,9 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- BACKGROUND --- */
         #nexus-bg { position: fixed; inset: 0; z-index: -100; pointer-events: none; }
         #nexus-bg video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
-        /* --- TITLE --- */
         .title-container { display: flex; justify-content: center; padding: 20px 0; z-index: 100; }
         .blood-letter {
             font-size: clamp(2rem, 8vw, 4rem); color: var(--blood-glow);
@@ -36,7 +34,6 @@
         }
         @keyframes float { 50% { transform: translateY(-10px); } }
 
-        /* --- BOARD --- */
         #game-board {
             flex: 1; display:grid; grid-template-columns:repeat(4, 1fr);
             gap:var(--gap); padding: 0 10px 100px;
@@ -52,7 +49,6 @@
             border-radius: 8px; position: relative;
         }
 
-        /* --- CARD ENTITY --- */
         .card-entity {
             position: absolute; width: var(--card-w); height: var(--card-h);
             border-radius: 8px; border: 1px solid var(--blood-dark);
@@ -87,7 +83,7 @@
         .smoke-out { animation: smokeToDeck 1s forwards; pointer-events: none; z-index: 2000 !important; }
         @keyframes smokeToDeck { 100% { transform: translate(var(--tx), var(--ty)) scale(0); filter: blur(25px); opacity: 0; } }
         
-        /* DEBUG CSS */
+        /* Debug Yellow Border stays for troubleshooting */
         .img-error { border: 2px solid yellow !important; }
     </style>
 </head>
@@ -104,21 +100,21 @@
 <div id="deck-frame" onclick="commander.shuffleAndDeploy()"></div>
 
 <script>
-// EXACT ASSET CHECK - Verify these in your GitHub Repo
+// UPDATED TO ABSOLUTE PATHS FOR VERCEL
 const faceFiles = [
-    "./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-06-39-34.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-07-31-75.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-09-18-64.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-09-46-94.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-09-59-72.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-10-12-71.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-10-25-20.jpg"
+    "/api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-06-39-34.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-07-31-75.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-09-18-64.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-09-46-94.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-09-59-72.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-10-12-71.jpg",
+    "/api/asset/Screenshot_2026-01-20-15-10-25-20.jpg"
 ];
 
-const videoSrc = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4";
+const videoSrc = "/bg/Videoleap_2026_01_20_18_07_56_976.mp4";
 
 const commander = {
     cards: [],
@@ -174,13 +170,9 @@ const commander = {
                 </div>
             `;
 
-            // DEBUG: Check if image path is valid
             const tester = new Image();
             tester.src = asset.img;
-            tester.onerror = () => {
-                console.error("FAILED TO LOAD ASSET:", asset.img);
-                card.classList.add('img-error');
-            };
+            tester.onerror = () => card.classList.add('img-error');
 
             document.body.appendChild(card);
             card.style.left = deckRect.left + 'px';
