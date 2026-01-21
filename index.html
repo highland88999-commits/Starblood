@@ -23,13 +23,9 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- BACKGROUND --- */
-        #nexus-bg {
-            position: fixed; inset: 0; z-index: -100; pointer-events: none;
-        }
+        #nexus-bg { position: fixed; inset: 0; z-index: -100; pointer-events: none; }
         #nexus-bg video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
-        /* --- TITLE --- */
         .title-container { display: flex; justify-content: center; padding: 20px 0; z-index: 100; }
         .blood-letter {
             font-size: clamp(2rem, 8vw, 4rem); color: var(--blood-glow);
@@ -38,26 +34,28 @@
         }
         @keyframes float { 50% { transform: translateY(-10px); } }
 
-        /* --- GAME BOARD --- */
         #game-board {
             flex: 1; display:grid; grid-template-columns:repeat(4, 1fr);
             gap:var(--gap); padding: 0 10px 100px;
             justify-items: center; align-content: center;
+            z-index: 10;
         }
         @media (orientation: landscape) { #game-board { grid-template-columns:repeat(5, 1fr); } }
 
         .card-placeholder {
             width: var(--card-w); height: var(--card-h);
-            background: rgba(40,0,0,0.1); border: 1px dashed #400; border-radius: 8px;
+            background: rgba(40,0,0,0.1); border: 1px dashed rgba(138, 0, 0, 0.3); 
+            border-radius: 8px; position: relative;
         }
 
         /* --- CARD ENTITY --- */
         .card-entity {
-            position: absolute; width: var(--card-w); height: var(--card-h);
+            position: absolute; 
+            width: var(--card-w); height: var(--card-h);
             border-radius: 8px; border: 1px solid var(--blood-dark);
             background: #000; z-index: 500; overflow: hidden;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
-            will-change: transform;
+            cursor: pointer;
         }
 
         .slider-track { display: flex; width: 200%; height: 100%; transition: transform 0.5s ease; }
@@ -65,17 +63,19 @@
 
         .panel { width: 50%; height: 100%; }
         .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .image-panel { background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .image-panel { background-size: cover; background-position: center; }
 
         #deck-frame {
             position:fixed; bottom:20px; right:20px; width:60px; height:85px;
             border:2px solid var(--blood-glow); border-radius:8px;
             background: rgba(30,0,0,0.6); z-index: 1000; cursor: pointer;
+            box-shadow: 0 0 15px var(--blood-dark);
         }
 
         .smoke-out { 
             animation: smokeToDeck 1s forwards; 
             pointer-events: none;
+            z-index: 2000 !important;
         }
 
         @keyframes smokeToDeck {
@@ -156,25 +156,32 @@ const commander = {
                 </div>
             `;
 
-            // CRITICAL: Append to body FIRST so it exists in DOM
             document.body.appendChild(card);
             
-            // Set initial position at deck
+            // Fix initial coords to exact Deck location
             card.style.left = deckRect.left + 'px';
             card.style.top = deckRect.top + 'px';
             card.style.opacity = '0';
             card.style.transform = `scale(0.1)`;
 
-            // Get target slot position
             const slot = document.getElementById(`slot-${i}`);
             const slotRect = slot.getBoundingClientRect();
 
-            // Trigger move
             setTimeout(() => {
                 card.style.opacity = '1';
+                // Calculate precise delta
                 const tx = slotRect.left - deckRect.left;
                 const ty = slotRect.top - deckRect.top;
                 card.style.transform = `translate(${tx}px, ${ty}px) scale(1)`;
+                
+                // After animation, move card into the placeholder for perfect mapping
+                setTimeout(() => {
+                    card.style.transition = 'none';
+                    card.style.transform = 'none';
+                    card.style.left = '0';
+                    card.style.top = '0';
+                    slot.appendChild(card);
+                }, 850);
             }, i * 50);
 
             card.addEventListener('pointerdown', () => this.handleSelection(card));
@@ -183,7 +190,7 @@ const commander = {
 
         deck.style.opacity = '0.2';
         deck.style.pointerEvents = 'none';
-        setTimeout(() => { this.locked = false; }, 2200);
+        setTimeout(() => { this.locked = false; }, 2500);
     },
 
     handleSelection(card) {
