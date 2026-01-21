@@ -2,92 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>S T A R B L O O D</title>
     <style>
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff3333;
-            --card-h: clamp(75px, 15dvh, 130px);
+            --card-h: clamp(80px, 18dvh, 140px);
             --card-w: calc(var(--card-h) * 0.72);
-            --gap: clamp(5px, 1dvh, 10px);
         }
+        body { background: #000; color: white; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100dvh; }
+        
+        #nexus-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.4; }
+        #nexus-bg video { width: 100%; height: 100%; object-fit: cover; }
 
-        * { margin:0; padding:0; box-sizing:border-box; }
+        .title { text-align: center; color: var(--blood-glow); font-size: 2rem; padding: 20px; letter-spacing: 10px; text-shadow: 0 0 10px var(--blood-dark); }
 
-        body {
-            background:#000; color:white;
-            font-family:'Courier New', monospace;
-            height: 100dvh; width:100vw;
-            overflow:hidden; touch-action:none;
-            display: flex; flex-direction: column;
-        }
-
-        #nexus-bg { position: fixed; inset: 0; z-index: -100; pointer-events: none; }
-        #nexus-bg video { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
-
-        /* --- SCREEN LOG FOR MAPPING TRACING --- */
-        #debug-log {
-            position: fixed; top: 10px; left: 10px; font-size: 8px;
-            color: #555; pointer-events: none; z-index: 9999;
-            max-width: 80vw; line-height: 1.2;
-        }
-
-        .title-container { display: flex; justify-content: center; padding: 20px 0; z-index: 100; }
-        .blood-letter {
-            font-size: clamp(2rem, 8vw, 4rem); color: var(--blood-glow);
-            text-shadow: 0 0 10px var(--blood-dark); margin: 0 4px;
-        }
-
-        #game-board {
-            flex: 1; display:grid; grid-template-columns:repeat(4, 1fr);
-            gap:var(--gap); padding: 0 10px 100px;
-            justify-items: center; align-content: center;
-            z-index: 10;
-        }
-
-        .card-placeholder {
-            width: var(--card-w); height: var(--card-h);
-            background: rgba(255, 255, 255, 0.03); 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            border-radius: 8px;
-        }
-
-        .card-entity {
-            position: absolute; width: var(--card-w); height: var(--card-h);
-            border-radius: 8px; border: 1px solid var(--blood-dark);
-            background: #000; z-index: 500; overflow: hidden;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
+        #game-board { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px 20px; justify-items: center; align-content: center; z-index: 10; }
+        
+        .card-placeholder { width: var(--card-w); height: var(--card-h); background: rgba(255,255,255,0.05); border-radius: 8px; position: relative; }
+        
+        .card-entity { 
+            position: absolute; width: var(--card-w); height: var(--card-h); 
+            border-radius: 8px; border: 1px solid var(--blood-dark); 
+            background: #000; overflow: hidden; cursor: pointer; 
+            transition: transform 0.6s cubic-bezier(0.2, 0, 0.2, 1); 
         }
 
         .slider-track { display: flex; width: 200%; height: 100%; transition: transform 0.5s ease; }
         .card-entity.active .slider-track { transform: translateX(-50%); }
-
-        .panel { width: 50%; height: 100%; position: relative; }
-        .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
         
-        .image-panel { background-size: cover; background-position: center; }
+        .panel { width: 50%; height: 100%; }
+        .video-panel { position: relative; background: #000; }
+        .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        
+        .image-panel { background-size: cover; background-position: center; border-left: 1px solid var(--blood-dark); }
 
-        .asset-id {
-            position: absolute; bottom: 5px; right: 6px;
-            font-size: 9px; color: var(--blood-glow);
-            background: rgba(0,0,0,0.8); padding: 2px 4px; border: 1px solid var(--blood-dark);
-        }
-
-        #deck-frame {
-            position:fixed; bottom:20px; right:20px; width:60px; height:85px;
-            border:2px solid var(--blood-glow); border-radius:8px;
-            background: rgba(40,0,0,0.5); z-index: 1000; cursor: pointer;
-        }
-
-        .smoke-out { animation: smokeToDeck 1s forwards; pointer-events: none; }
-        @keyframes smokeToDeck { 100% { transform: translate(var(--tx), var(--ty)) scale(0); filter: blur(20px); opacity: 0; } }
+        #deck-frame { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 70px; border: 2px solid var(--blood-glow); border-radius: 5px; background: rgba(138, 0, 0, 0.3); z-index: 100; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div id="debug-log">INITIATING ASSET SCAN...</div>
 
 <div id="nexus-bg">
     <video autoplay muted loop playsinline>
@@ -95,99 +49,60 @@
     </video>
 </div>
 
-<div class="title-container" id="blood-title"></div>
+<div class="title">STARBLOOD</div>
 <div id="game-board"></div>
-<div id="deck-frame" onclick="commander.shuffleAndDeploy()"></div>
+<div id="deck-frame" onclick="commander.deploy()"></div>
 
 <script>
-/**
- * AUDIT PATHS: testing '/asset/' instead of '/api/asset/'
- * Ensure your GitHub folder matches this EXACTLY.
- */
+// Pointing directly to /api/ where your screenshots are located
 const faceFiles = [
-    "/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
-    "/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
-    "/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
-    "/asset/Screenshot_2026-01-20-15-06-39-34.jpg",
-    "/asset/Screenshot_2026-01-20-15-07-31-75.jpg",
-    "/asset/Screenshot_2026-01-20-15-09-18-64.jpg",
-    "/asset/Screenshot_2026-01-20-15-09-46-94.jpg",
-    "/asset/Screenshot_2026-01-20-15-09-59-72.jpg",
-    "/asset/Screenshot_2026-01-20-15-10-12-71.jpg",
-    "/asset/Screenshot_2026-01-20-15-10-25-20.jpg"
+    "/api/Screenshot_2026-01-20-15-02-24-76.jpg",
+    "/api/Screenshot_2026-01-20-15-05-56-58.jpg",
+    "/api/Screenshot_2026-01-20-15-06-24-65.jpg",
+    "/api/Screenshot_2026-01-20-15-06-39-34.jpg",
+    "/api/Screenshot_2026-01-20-15-07-31-75.jpg",
+    "/api/Screenshot_2026-01-20-15-09-18-64.jpg",
+    "/api/Screenshot_2026-01-20-15-09-46-94.jpg",
+    "/api/Screenshot_2026-01-20-15-09-59-72.jpg",
+    "/api/Screenshot_2026-01-20-15-10-12-71.jpg",
+    "/api/Screenshot_2026-01-20-15-10-25-20.jpg"
 ];
 
-const videoSrc = "/bg/Videoleap_2026_01_20_18_07_56_976.mp4";
-
-const logger = (msg) => {
-    const log = document.getElementById('debug-log');
-    log.innerHTML += `<br>> ${msg}`;
-};
+const cardVideo = "/bg/Videoleap_2026_01_20_18_07_56_976.mp4";
 
 const commander = {
-    cards: [],
     selected: [],
-    locked: false,
-
+    
     init() {
-        "STARBLOOD".split('').forEach(char => {
-            const span = document.createElement('span');
-            span.className = 'blood-letter';
-            span.textContent = char;
-            document.getElementById('blood-title').appendChild(span);
-        });
-
         const board = document.getElementById('game-board');
-        for (let i = 0; i < 20; i++) {
+        for(let i=0; i<20; i++) {
             const slot = document.createElement('div');
             slot.className = 'card-placeholder';
             slot.id = `slot-${i}`;
             board.appendChild(slot);
         }
-
-        this.auditMapping();
     },
 
-    auditMapping() {
-        faceFiles.forEach(path => {
-            const img = new Image();
-            img.onload = () => logger(`MAPPED: ${path.split('/').pop()}`);
-            img.onerror = () => logger(`FAILED: ${path}`);
-            img.src = path;
-        });
-    },
+    deploy() {
+        const board = document.getElementById('game-board');
+        if (board.querySelector('.card-entity')) return;
 
-    shuffleAndDeploy() {
-        if (this.cards.length > 0) return;
-        this.locked = true;
-        
-        const deck = document.getElementById('deck-frame');
-        const deckRect = deck.getBoundingClientRect();
-        
-        let pool = [];
-        for(let j=0; j<10; j++) {
-            const id = `${String.fromCharCode(65 + Math.floor(j/5))}${ (j%5)+1 }`;
-            pool.push({ img: faceFiles[j], id: id }, { img: faceFiles[j], id: id });
-        }
-        
-        pool.sort(() => Math.random() - 0.5);
+        const deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+        const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
 
-        pool.forEach((asset, i) => {
+        deck.forEach((path, i) => {
             const card = document.createElement('div');
             card.className = 'card-entity';
-            card.dataset.val = asset.img;
-            
+            card.dataset.val = path;
             card.innerHTML = `
                 <div class="slider-track">
                     <div class="panel video-panel">
-                        <video autoplay muted loop playsinline><source src="${videoSrc}"></video>
+                        <video autoplay muted loop playsinline><source src="${cardVideo}"></video>
                     </div>
-                    <div class="panel image-panel" style="background-image:url('${asset.img}')">
-                        <div class="asset-id">${asset.id}</div>
-                    </div>
+                    <div class="panel image-panel" style="background-image:url('${path}')"></div>
                 </div>
             `;
-
+            
             document.body.appendChild(card);
             card.style.left = deckRect.left + 'px';
             card.style.top = deckRect.top + 'px';
@@ -196,53 +111,33 @@ const commander = {
             const slotRect = slot.getBoundingClientRect();
 
             setTimeout(() => {
-                const tx = slotRect.left - deckRect.left;
-                const ty = slotRect.top - deckRect.top;
-                card.style.transform = `translate(${tx}px, ${ty}px)`;
-                
+                card.style.transform = `translate(${slotRect.left - deckRect.left}px, ${slotRect.top - deckRect.top}px)`;
                 setTimeout(() => {
-                    card.style.transition = 'none';
-                    card.style.transform = 'none';
-                    card.style.left = '0';
-                    card.style.top = '0';
+                    card.style.transition = "none";
+                    card.style.transform = "none";
+                    card.style.left = "0"; card.style.top = "0";
                     slot.appendChild(card);
-                }, 850);
-            }, i * 30);
+                }, 650);
+            }, i * 40);
 
-            card.addEventListener('pointerdown', () => this.handleSelection(card));
-            this.cards.push(card);
+            card.onclick = () => this.handleFlip(card);
         });
-
-        setTimeout(() => { this.locked = false; }, 2000);
     },
 
-    handleSelection(card) {
-        if (this.locked || this.selected.length >= 2 || card.classList.contains('active')) return;
+    handleFlip(card) {
+        if (this.selected.length >= 2 || card.classList.contains('active')) return;
         card.classList.add('active');
         this.selected.push(card);
+        
         if (this.selected.length === 2) {
-            this.locked = true;
-            setTimeout(() => this.checkMatch(), 600);
-        }
-    },
-
-    checkMatch() {
-        const [a, b] = this.selected;
-        if (a.dataset.val === b.dataset.val) {
-            const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
-            [a, b].forEach(card => {
-                const rect = card.getBoundingClientRect();
-                card.style.setProperty('--tx', (deckRect.left - rect.left) + 'px');
-                card.style.setProperty('--ty', (deckRect.top - rect.top) + 'px');
-                card.classList.add('smoke-out');
-            });
-            this.selected = [];
-            this.locked = false;
-        } else {
             setTimeout(() => {
-                a.classList.remove('active'); b.classList.remove('active');
-                this.selected = []; this.locked = false;
-            }, 800);
+                const [a, b] = this.selected;
+                if (a.dataset.val !== b.dataset.val) {
+                    a.classList.remove('active');
+                    b.classList.remove('active');
+                }
+                this.selected = [];
+            }, 1000);
         }
     }
 };
