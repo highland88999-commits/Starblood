@@ -8,9 +8,10 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff3333;
-            --card-w: clamp(70px, 18vw, 95px);
-            --card-h: calc(var(--card-w) * 1.42);
-            --gap: clamp(8px, 2vw, 14px);
+            /* Scale cards based on height to prevent bottom clipping */
+            --card-h: clamp(90px, 15dvh, 140px);
+            --card-w: calc(var(--card-h) * 0.7);
+            --gap: clamp(6px, 1.5dvh, 12px);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -19,39 +20,36 @@
             background:#000; color:white;
             font-family:'Courier New', monospace;
             height: 100dvh; width:100vw;
-            overflow-x:hidden; overflow-y: auto; /* Allow scrolling if cards exceed height */
+            overflow:hidden; 
             touch-action:none;
             -webkit-user-select:none; user-select:none;
-            perspective: 1200px;
+            display: flex;
+            flex-direction: column;
         }
 
         .blood-header {
-            position:fixed; top:16px; left:0; right:0; z-index:1000;
+            padding: 15px 0;
             color:var(--blood-glow); letter-spacing:10px;
-            font-size:clamp(1.4rem, 6vw, 2.8rem);
+            font-size:clamp(1.4rem, 6vw, 2.4rem);
             text-shadow:0 0 16px var(--blood-dark);
             pointer-events:none; opacity:0.92; text-align:center;
-        }
-
-        #video-container {
-            position:fixed; inset:0; z-index:-10; pointer-events:none;
-        }
-        .bg-vid-main {
-            width:100%; height:100%; object-fit:cover; opacity:0.38;
+            z-index: 1000;
         }
 
         #game-board {
-            position:relative; z-index:500;
-            display:grid; grid-template-columns:repeat(4,1fr);
-            gap:var(--gap); 
-            padding: 80px 15px 120px; /* Extra bottom padding for the deck-frame area */
+            flex: 1;
+            display:grid; 
+            grid-template-columns:repeat(4, 1fr);
+            gap:var(--gap);
+            padding: 10px;
+            justify-items: center;
+            align-content: center;
             opacity:0; transition:opacity 1.1s ease;
-            min-height: 100%;
-            align-content:center; justify-items:center;
+            z-index: 500;
         }
 
         @media (orientation: landscape) {
-            #game-board { grid-template-columns:repeat(5,1fr); padding-top:60px; }
+            #game-board { grid-template-columns:repeat(5, 1fr); }
         }
 
         .card {
@@ -68,110 +66,72 @@
         .face {
             position:absolute; inset:0;
             backface-visibility:hidden; -webkit-backface-visibility:hidden;
-            border-radius:9px; border:1px solid var(--blood-dark);
+            border-radius:8px; border:1px solid var(--blood-dark);
             overflow:hidden; background:#000;
         }
 
         .front {
             transform: rotateY(180deg);
-            background: linear-gradient(135deg, #000 0%, #200 100%);
+            background: linear-gradient(135deg, #000 0%, #1a0000 100%);
             box-shadow: inset 0 0 15px var(--blood-dark);
-            background-size: cover; 
-            background-position: center;
+            background-size: cover; background-position: center;
         }
 
         .back-video {
-            width:100%; height:100%; object-fit:cover; opacity:0.82;
+            width:100%; height:100%; object-fit:cover; opacity:0.85;
+        }
+
+        /* --- UI Elements --- */
+        #deck-frame {
+            position:fixed; bottom:15px; right:15px; z-index:400;
+            width:50px; height:70px;
+            background:rgba(40,0,0,0.35); backdrop-filter:blur(8px);
+            border:1px solid var(--blood-glow); border-radius:8px;
+            overflow:hidden;
+        }
+
+        #match-counter {
+            position:absolute; bottom:2px; left:0; right:0;
+            text-align:center; font-size:8px; color:var(--blood-glow);
         }
 
         #landing {
             position:fixed; inset:0; z-index:2000; background:#000;
             display:flex; flex-direction:column; align-items:center; justify-content:center;
-            transition:opacity 0.9s;
-        }
-
-        .landing-vid {
-            position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.72; z-index:-1;
+            transition:opacity 0.8s;
         }
 
         .btn-void {
-            padding:18px 50px; border:2px solid var(--blood-glow);
-            background:rgba(0,0,0,0.75); color:var(--blood-glow);
-            font-size:1.4rem; letter-spacing:7px; cursor:pointer;
-            transition:all 0.3s;
-        }
-        .btn-void:active { transform:scale(0.96); }
-
-        #deck-frame {
-            position:fixed; bottom:18px; right:18px; z-index:400;
-            width:64px; height:90px;
-            background:rgba(40,0,0,0.35); backdrop-filter:blur(10px);
-            border:1px solid var(--blood-glow); border-radius:10px;
-            overflow:hidden; transition:all 0.7s ease;
-        }
-
-        #match-counter {
-            position:absolute; bottom:4px; left:0; right:0;
-            text-align:center; font-size:9px; color:var(--blood-glow);
-            text-shadow:0 0 6px #000;
+            padding:15px 40px; border:2px solid var(--blood-glow);
+            background:rgba(0,0,0,0.8); color:var(--blood-glow);
+            font-size:1.2rem; letter-spacing:5px; cursor:pointer;
         }
 
         #leaderboard-overlay {
             position:fixed; inset:0; display:none; flex-direction:column;
-            align-items:center; justify-content:center; z-index:400; background:rgba(0,0,0,0.9);
+            align-items:center; justify-content:center; z-index:2500; background:rgba(0,0,0,0.95);
         }
-
-        .holo-frame {
-            background:rgba(20,0,0,0.6); backdrop-filter:blur(12px);
-            border:1px solid var(--blood-glow); padding:24px;
-            border-radius:15px; width:88%; max-width:460px; text-align:center;
-        }
-
-        .push-active #video-container { filter: url(#push-distort-strong); }
     </style>
 </head>
 <body>
 
-<svg width="0" height="0" style="position:absolute">
-    <defs>
-        <filter id="push-distort-strong">
-            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G"/>
-        </filter>
-    </defs>
-</svg>
-
-<div id="entity-flash" style="position:fixed; inset:0; pointer-events:none; z-index:260; opacity:0; transition:opacity 0.4s; background:radial-gradient(circle at 50% 50%, rgba(255,0,0,0.45) 0%, transparent 70%); mix-blend-mode:screen;"></div>
-
 <div class="blood-header">STARBLOOD</div>
 
-<div id="video-container">
-    <video autoplay muted loop playsinline class="bg-vid-main">
-        <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
-    </video>
-</div>
-
 <div id="landing">
-    <video autoplay muted loop playsinline class="landing-vid">
-        <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
-    </video>
     <button class="btn-void">ENTER VOID</button>
 </div>
 
 <div id="deck-frame">
-    <video autoplay muted loop playsinline class="back-video" preload="none">
-        <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
-    </video>
-    <div id="match-counter">MATCHES: 0/10</div>
+    <div id="match-counter">0/10</div>
 </div>
 
 <div id="game-board"></div>
 
 <div id="leaderboard-overlay">
-    <div class="holo-frame">
-        <h2 style="color:var(--blood-glow); letter-spacing:6px; margin:0 0 20px;">RECORDS</h2>
-        <div id="score-list" style="margin:20px 0; max-height:260px; overflow-y:auto; font-size:1.1rem;"></div>
-        <button class="btn-void" style="font-size:1rem; padding:12px 40px;" onclick="location.reload()">RESTART</button>
+    <div class="holo-frame" style="border:1px solid var(--blood-glow); padding:20px; text-align:center;">
+        <h2 style="color:var(--blood-glow); margin-bottom:20px;">RECORDS</h2>
+        <div id="score-list"></div>
+        <button class="btn-void" onclick="location.reload()" style="margin-top:20px;">RESTART</button>
     </div>
 </div>
 
@@ -189,94 +149,48 @@ const faceFiles = [
     "./api/asset/Screenshot_2026-01-20-15-10-25-20.jpg"
 ];
 
-const cardBackVid = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4";
-
 let flipped = [];
 let locked = false;
 let matches = 0;
 let timerStart = null;
 
 const board = document.getElementById('game-board');
-const deckFrame = document.getElementById('deck-frame');
-const matchCounter = document.getElementById('match-counter');
 
-document.querySelector('.btn-void').addEventListener('click', enterVoid);
-
-function triggerFacePush() {
-    document.body.classList.add('push-active');
-    document.getElementById('entity-flash').style.opacity = '1';
+document.querySelector('.btn-void').addEventListener('pointerdown', (e) => {
+    document.getElementById('landing').style.opacity = '0';
     setTimeout(() => {
-        document.body.classList.remove('push-active');
-        document.getElementById('entity-flash').style.opacity = '0';
-    }, 800);
-}
-
-function enterVoid(e) {
-    const landing = document.getElementById('landing');
-    landing.style.opacity = '0';
-    setTimeout(() => {
-        landing.style.display = 'none';
+        document.getElementById('landing').style.display = 'none';
         board.style.opacity = '1';
         timerStart = Date.now();
         buildBoard();
-        setTimeout(ritualDownload, 300);
     }, 800);
-}
+});
 
 function buildBoard() {
+    let deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
     board.innerHTML = '';
-    let deck = [...faceFiles, ...faceFiles];
-    deck.sort(() => Math.random() - 0.5);
 
     deck.forEach(img => {
         const card = document.createElement('div');
         card.className = 'card';
         card.dataset.val = img;
-
         card.innerHTML = `
             <div class="face front" style="background-image:url('${img}')"></div>
-            <div class="face back">
-                <video autoplay muted loop playsinline class="back-video">
-                    <source src="${cardBackVid}" type="video/mp4">
-                </video>
+            <div class="face back" style="background: #000;">
+                <div style="width:100%; height:100%; border: 1px solid #400;"></div>
             </div>
         `;
 
-        card.addEventListener('click', () => {
+        card.addEventListener('pointerdown', () => {
             if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
             card.classList.add('flipped');
             flipped.push(card);
-
             if (flipped.length === 2) {
                 locked = true;
-                setTimeout(checkMatch, 700);
+                setTimeout(checkMatch, 600);
             }
         });
-
         board.appendChild(card);
-    });
-}
-
-function ritualDownload() {
-    const deckRect = deckFrame.getBoundingClientRect();
-    document.querySelectorAll('.card').forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const dx = deckRect.left + deckRect.width/2 - (rect.left + rect.width/2);
-        const dy = deckRect.top + deckRect.height/2 - (rect.top + rect.height/2);
-        card.style.transition = 'none';
-        card.style.transform = `translate(${dx}px, ${dy}px) scale(0.08)`;
-        card.style.opacity = '0';
-    });
-    setTimeout(deployCards, 100);
-}
-
-function deployCards() {
-    document.querySelectorAll('.card').forEach((card, i) => {
-        setTimeout(() => {
-            card.style.transition = 'transform 0.9s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.6s';
-            card.style.transform = 'translate(0,0) scale(1)';
-            card.style.opacity = '1';
-        }, i * 40);
     });
 }
 
@@ -284,39 +198,23 @@ function checkMatch() {
     const [a, b] = flipped;
     if (a.dataset.val === b.dataset.val) {
         matches++;
-        matchCounter.textContent = `MATCHES: ${matches}/10`;
+        document.getElementById('match-counter').textContent = `${matches}/10`;
         setTimeout(() => {
-            [a, b].forEach(card => {
-                card.style.transform += ' scale(0)';
-                card.style.opacity = '0';
-            });
-            flipped = [];
-            locked = false;
-            if (matches === 10) finalizeRecord(((Date.now() - timerStart) / 1000).toFixed(2));
-        }, 600);
+            a.style.opacity = '0'; b.style.opacity = '0';
+            flipped = []; locked = false;
+            if (matches === 10) finish();
+        }, 400);
     } else {
         setTimeout(() => {
-            a.classList.remove('flipped');
-            b.classList.remove('flipped');
-            flipped = [];
-            locked = false;
-        }, 900);
+            a.classList.remove('flipped'); b.classList.remove('flipped');
+            flipped = []; locked = false;
+        }, 800);
     }
 }
 
-function finalizeRecord(time) {
-    const name = prompt("IDENTITY VERIFIED. ENTER NAME:", "VOIDWALKER") || "ANONYMOUS";
-    let records = JSON.parse(localStorage.getItem('starblood_records') || '[]');
-    records.push({ name, time: parseFloat(time) });
-    records.sort((a, b) => a.time - b.time);
-    localStorage.setItem('starblood_records', JSON.stringify(records.slice(0, 10)));
-    
-    document.getElementById('score-list').innerHTML = records.map((r, i) => `
-        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #400;">
-            <span>${i+1}. ${r.name}</span>
-            <strong>${r.time}s</strong>
-        </div>
-    `).join('');
+function finish() {
+    const time = ((Date.now() - timerStart) / 1000).toFixed(2);
+    document.getElementById('score-list').innerHTML = `TIME: ${time}s`;
     document.getElementById('leaderboard-overlay').style.display = 'flex';
 }
 </script>
