@@ -78,13 +78,13 @@
             position:fixed; bottom:20px; right:20px; width:60px; height:85px;
             border:2px solid var(--blood-glow); border-radius:8px;
             background: rgba(30,0,0,0.6); z-index: 1000; cursor: pointer;
+            transition: all 0.3s;
         }
+        
+        #deck-frame.loading { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
 
         .smoke-out { animation: smokeToDeck 1s forwards; pointer-events: none; z-index: 2000 !important; }
         @keyframes smokeToDeck { 100% { transform: translate(var(--tx), var(--ty)) scale(0); filter: blur(25px); opacity: 0; } }
-        
-        /* Debug Yellow Border stays for troubleshooting */
-        .img-error { border: 2px solid yellow !important; }
     </style>
 </head>
 <body>
@@ -97,10 +97,12 @@
 
 <div class="title-container" id="blood-title"></div>
 <div id="game-board"></div>
-<div id="deck-frame" onclick="commander.shuffleAndDeploy()"></div>
+<div id="deck-frame" class="loading" onclick="commander.shuffleAndDeploy()"></div>
 
 <script>
-// UPDATED TO ABSOLUTE PATHS FOR VERCEL
+/** * PRECISION ASSET LIST 
+ * Explicitly defined from your repository structure.
+ */
 const faceFiles = [
     "/api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
     "/api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
@@ -120,8 +122,10 @@ const commander = {
     cards: [],
     selected: [],
     locked: false,
+    loadedCount: 0,
 
-    init() {
+    async init() {
+        // Build Title
         "STARBLOOD".split('').forEach((char, i) => {
             const span = document.createElement('span');
             span.className = 'blood-letter';
@@ -130,6 +134,7 @@ const commander = {
             document.getElementById('blood-title').appendChild(span);
         });
 
+        // Build Placeholders
         const board = document.getElementById('game-board');
         for (let i = 0; i < 20; i++) {
             const slot = document.createElement('div');
@@ -137,24 +142,46 @@ const commander = {
             slot.id = `slot-${i}`;
             board.appendChild(slot);
         }
+
+        // --- PRECISION PRE-LOAD CHECK ---
+        this.verifyAssets();
+    },
+
+    verifyAssets() {
+        faceFiles.forEach(path => {
+            const img = new Image();
+            img.onload = () => {
+                this.loadedCount++;
+                if(this.loadedCount === faceFiles.length) {
+                    document.getElementById('deck-frame').classList.remove('loading');
+                    console.log("All assets mapped successfully.");
+                }
+            };
+            img.onerror = () => {
+                console.error(`FATAL MAPPING ERROR: Missing file at ${path}`);
+                alert(`Asset Error: ${path} not found. Check GitHub folder name (case-sensitive).`);
+            };
+            img.src = path;
+        });
     },
 
     shuffleAndDeploy() {
-        if (this.cards.length > 0) return;
+        if (this.cards.length > 0 || this.locked) return;
         this.locked = true;
         
         const deck = document.getElementById('deck-frame');
         const deckRect = deck.getBoundingClientRect();
         
-        let assetPool = [];
+        let pool = [];
         for(let j=0; j<10; j++) {
             const id = `${String.fromCharCode(65 + Math.floor(j/5))}${ (j%5)+1 }`;
-            assetPool.push({ img: faceFiles[j], id: id }, { img: faceFiles[j], id: id });
+            const data = { img: faceFiles[j], id: id };
+            pool.push(data, { ...data });
         }
         
-        assetPool.sort(() => Math.random() - 0.5);
+        pool.sort(() => Math.random() - 0.5);
 
-        assetPool.forEach((asset, i) => {
+        pool.forEach((asset, i) => {
             const card = document.createElement('div');
             card.className = 'card-entity';
             card.dataset.val = asset.img;
@@ -169,10 +196,6 @@ const commander = {
                     </div>
                 </div>
             `;
-
-            const tester = new Image();
-            tester.src = asset.img;
-            tester.onerror = () => card.classList.add('img-error');
 
             document.body.appendChild(card);
             card.style.left = deckRect.left + 'px';
@@ -196,7 +219,7 @@ const commander = {
                     card.style.top = '0';
                     slot.appendChild(card);
                 }, 850);
-            }, i * 50);
+            }, i * 40);
 
             card.addEventListener('pointerdown', () => this.handleSelection(card));
             this.cards.push(card);
@@ -204,7 +227,7 @@ const commander = {
 
         deck.style.opacity = '0.2';
         deck.style.pointerEvents = 'none';
-        setTimeout(() => { this.locked = false; }, 2500);
+        setTimeout(() => { this.locked = false; }, 2000);
     },
 
     handleSelection(card) {
