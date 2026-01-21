@@ -29,7 +29,6 @@
             position: fixed;
             inset: 0;
             z-index: -10;
-            transition: filter 0.3s ease;
         }
 
         .bg-vid {
@@ -39,21 +38,6 @@
             opacity: 0.35;
         }
 
-        .push-active #video-container {
-            filter: url(#push-distort-strong);
-        }
-
-        #entity-flash {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 260;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.4) 0%, transparent 70%);
-            mix-blend-mode: screen;
-        }
-
         #game-board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -61,7 +45,6 @@
             margin-top: 40px;
             max-width: calc(4 * var(--card-w) + 3 * var(--gap));
             justify-content: center;
-            perspective: 1200px;
             opacity: 0;
             transition: opacity 1s;
         }
@@ -71,10 +54,10 @@
             height: var(--card-h);
             border: 1px solid rgba(138,0,0,0.4);
             border-radius: 8px;
-            position: relative;
-            overflow: hidden;
             background: rgba(10,0,0,0.4);
             box-shadow: inset 0 0 10px rgba(138,0,0,0.2);
+            position: relative;
+            overflow: hidden;
         }
 
         .card {
@@ -82,13 +65,11 @@
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4,0,0.2,1),
-                        opacity 0.5s;
+            transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.5s;
             cursor: pointer;
         }
 
         .card.flipped { transform: rotateY(180deg); }
-        .card:active { transform: scale(1.04); }
 
         .face {
             position: absolute;
@@ -104,10 +85,6 @@
         .front { transform: rotateY(180deg); }
         .back {
             background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
-        }
-
-        .matched-glow {
-            box-shadow: 0 0 25px var(--blood-glow), inset 0 0 15px var(--blood-glow) !important;
         }
 
         #landing {
@@ -130,110 +107,40 @@
             opacity: 0.8;
         }
 
-        .landing-content {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            padding: 40px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid var(--blood-dark);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
+        .landing-button {
+            padding: 15px 60px;
+            background: transparent;
+            border: 2px solid var(--blood-glow);
+            color: var(--blood-glow);
+            font-size: 1.4rem;
+            cursor: pointer;
+            letter-spacing: 3px;
         }
 
-        .header {
-            margin-top: 20px;
-            font-size: 2.8rem;
-            font-weight: 900;
-            color: var(--blood-glow);
-            text-shadow: 0 0 15px var(--blood-glow);
-            letter-spacing: 5px;
+        .deck-stack {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 115px;
+            cursor: pointer;
             opacity: 0;
             transition: opacity 1s;
-        }
-
-        .deck-container {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90px;
-            height: 130px;
             z-index: 200;
-            transition: all 0.4s ease;
-        }
-
-        .deck-container.minimized {
-            transform: translateX(-50%) scale(0.6);
-            opacity: 0.7;
-        }
-
-        .deck-frame {
-            width: 100%;
-            height: 100%;
-            background: rgba(20,0,0,0.6);
-            border: 2px solid var(--blood-dark);
-            border-radius: 12px;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 0 20px var(--blood-glow), inset 0 0 15px var(--blood-glow);
-            position: relative;
-            overflow: hidden;
         }
 
         .deck-art {
             width: 100%;
             height: 100%;
+            border-radius: 8px;
             background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
             background-size: cover;
-        }
-
-        .deck-tab {
-            position: absolute;
-            top: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(20,0,0,0.7);
             border: 2px solid var(--blood-dark);
-            border-bottom: none;
-            padding: 4px 16px;
-            border-radius: 8px 8px 0 0;
-            color: var(--blood-glow);
-            font-size: 0.8rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        @media (max-width: 600px) {
-            :root {
-                --card-w: 65px;
-                --card-h: 94px;
-                --gap: 10px;
-            }
-            #game-board {
-                margin-top: 20px;
-                max-width: calc(4 * var(--card-w) + 3 * var(--gap));
-            }
-            .deck-container {
-                width: 70px;
-                height: 100px;
-            }
+            box-shadow: 0 0 15px var(--blood-glow);
         }
     </style>
 </head>
 <body>
-
-    <svg width="0" height="0" style="position:absolute;">
-        <defs>
-            <filter id="push-distort-strong">
-                <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G"/>
-            </filter>
-        </defs>
-    </svg>
-
-    <div id="entity-flash"></div>
 
     <div id="video-container">
         <video autoplay muted loop playsinline class="bg-vid">
@@ -245,29 +152,19 @@
         <video autoplay muted loop playsinline class="intro-vid">
             <source src="https://www.dropbox.com/scl/fi/j6x8j8qa9vrcf3th5qv9y/Videoleap_2026_01_20_18_07_56_976.mp4?rlkey=19vjtf6sekunvma6gczjzh7ie&st=alpirwmc&raw=1" type="video/mp4">
         </video>
-        <div class="landing-content">
-            <button style="padding:15px 40px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer; font-size:1.2rem;" onclick="enterVoid()">ENTER</button>
-        </div>
+        <button class="landing-button" onclick="enterVoid()">ENTER</button>
     </div>
 
     <div class="header" id="title"></div>
 
     <div id="game-board"></div>
 
-    <div class="deck-container" id="deck">
-        <div class="deck-tab" id="deck-tab">SHUFFLE</div>
-        <div class="deck-frame">
-            <div class="deck-art"></div>
-        </div>
-    </div>
-
-    <div id="win-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:400; color:var(--blood-glow); font-size:3rem; display:flex; flex-direction:column; align-items:center; justify-content:center; text-shadow:0 0 20px currentColor;">
-        <div>IDENTITY DECRYPTED</div>
-        <button onclick="restartGame()" style="margin-top:20px; padding:12px 30px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer; font-size:1.2rem;">RESTART</button>
+    <div class="deck-stack" id="deck">
+        <div class="deck-art"></div>
     </div>
 
     <script>
-        // Title
+        // Title animation
         const titleEl = document.getElementById('title');
         "STARBLOOD".split('').forEach(l => {
             const span = document.createElement('span');
@@ -276,7 +173,7 @@
             titleEl.appendChild(span);
         });
 
-        // 10 unique images — each used twice
+        // 10 unique front images — each used twice
         const faceFiles = [
             "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
@@ -292,17 +189,10 @@
 
         let activeFlipped = [];
         let locked = false;
-        let gameActive = false; // prevents shuffle mid-game
 
         const deckEl = document.getElementById('deck');
-        const deckTab = document.getElementById('deck-tab');
-
         deckEl.onclick = () => {
-            if (!locked && !gameActive) initGame();
-        };
-
-        deckTab.onclick = () => {
-            deckEl.classList.toggle('minimized');
+            if (!locked) initGame();
         };
 
         function enterVoid() {
@@ -312,43 +202,44 @@
                 document.getElementById('title').style.opacity = '1';
                 document.getElementById('game-board').style.opacity = '1';
                 deckEl.style.opacity = '1';
-                // Empty placeholders visible — shuffle required
+                // Show empty placeholders — no cards yet
+                initPlaceholders();
             }, 1500);
         }
 
-        function triggerGlitch() {
-            document.body.classList.add('push-active');
-            document.getElementById('entity-flash').style.opacity = '1';
-            setTimeout(() => {
-                document.body.classList.remove('push-active');
-                document.getElementById('entity-flash').style.opacity = '0';
-            }, 350);
+        function initPlaceholders() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                board.appendChild(slot);
+            }
         }
 
         function initGame() {
             locked = true;
-            gameActive = true;
             const board = document.getElementById('game-board');
-            board.innerHTML = '';
+            board.innerHTML = ''; // clear placeholders
             document.querySelectorAll('.card').forEach(c => c.remove());
             activeFlipped = [];
 
             let pairs = [];
             for (let i = 0; i < faceFiles.length; i++) {
-                pairs.push({id: i, url: faceFiles[i]});
-                pairs.push({id: i, url: faceFiles[i]});
+                pairs.push({url: faceFiles[i]});
+                pairs.push({url: faceFiles[i]});
             }
 
             pairs.sort(() => Math.random() - 0.5);
 
-            pairs.forEach((pair, index) => {
+            pairs.forEach((pair, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.dataset.id = pair.id;
+                card.dataset.val = pair.url;
 
                 card.innerHTML = `
                     <div class="face front" style="background-image:url('${pair.url}')"></div>
@@ -373,8 +264,7 @@
 
         function checkMatch() {
             const [c1, c2] = activeFlipped;
-            if (c1.dataset.id === c2.dataset.id) {
-                triggerGlitch();
+            if (c1.dataset.val === c2.dataset.val) {
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
                     c2.classList.add('matched-glow');
@@ -398,12 +288,6 @@
                     locked = false;
                 }, 1000);
             }
-        }
-
-        function restartGame() {
-            document.getElementById('win-overlay').style.display = 'none';
-            gameActive = false; // allow shuffle again
-            initGame();
         }
     </script>
 </body>
