@@ -8,8 +8,9 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff0000;
-            --card-w: 80px;
-            --card-h: 115px;
+            --card-w: 82px;
+            --card-h: 118px;
+            --gap: 12px;
         }
 
         body {
@@ -36,7 +37,6 @@
             height: 100%;
             object-fit: cover;
             opacity: 0.35;
-            filter: contrast(1.2);
         }
 
         .push-active #video-container {
@@ -57,8 +57,9 @@
         #game-board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: var(--gap);
             margin-top: 30px;
+            max-width: calc(4 * var(--card-w) + 3 * var(--gap));
             perspective: 1200px;
             opacity: 0;
             transition: opacity 1s;
@@ -67,10 +68,11 @@
         .slot {
             width: var(--card-w);
             height: var(--card-h);
-            border: 1px solid rgba(138,0,0,0.2);
+            border: 1px solid rgba(138, 0, 0, 0.2);
             border-radius: 8px;
             position: relative;
             overflow: hidden;
+            background: rgba(10,0,0,0.3);
         }
 
         .card {
@@ -81,19 +83,12 @@
             left: 0;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4,0,0.2,1),
-                        top 0.8s ease,
-                        left 0.8s ease,
                         opacity 0.5s;
             cursor: pointer;
         }
 
         .card.flipped { transform: rotateY(180deg); }
-        .card:active { transform: scale(1.05); }
-
-        .card.returning {
-            pointer-events: none;
-            transition: all 1s ease-in;
-        }
+        .card:active { transform: scale(1.04); }
 
         .face {
             position: absolute;
@@ -178,8 +173,8 @@
         }
 
         @media (max-width: 600px) {
-            :root { --card-w: 70px; --card-h: 100px; }
-            #game-board { gap: 8px; }
+            :root { --card-w: 70px; --card-h: 100px; --gap: 8px; }
+            #game-board { margin-top: 20px; }
             .deck-stack { width: 70px; height: 100px; }
         }
     </style>
@@ -221,6 +216,7 @@
     </div>
 
     <script>
+        // Title
         const titleEl = document.getElementById('title');
         "STARBLOOD".split('').forEach(l => {
             const span = document.createElement('span');
@@ -229,6 +225,7 @@
             titleEl.appendChild(span);
         });
 
+        // 10 unique Dropbox images — each used twice (20 cards / 10 pairs)
         const faceFiles = [
             "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
