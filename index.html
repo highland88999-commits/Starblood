@@ -13,6 +13,8 @@
             --gap: clamp(5px, 1dvh, 10px);
         }
 
+        * { margin:0; padding:0; box-sizing:border-box; }
+
         body {
             background:#000; color:white;
             font-family:'Courier New', monospace;
@@ -22,24 +24,63 @@
             perspective: 1000px;
         }
 
+        /* --- BACKGROUND VIDEO (NEXUS RENDER) --- */
+        #nexus-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -100;
+            pointer-events: none;
+        }
+        #nexus-bg video {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: 0.45; filter: contrast(1.2) brightness(0.8);
+        }
+
+        /* --- FLOATING BLOOD TITLE --- */
+        .title-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0 10px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .blood-letter {
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: 900;
+            color: var(--blood-glow);
+            text-shadow: 0 0 10px var(--blood-dark), 2px 5px 15px #000;
+            margin: 0 4px;
+            display: inline-block;
+            animation: floatLetter 4s ease-in-out infinite;
+            letter-spacing: -2px;
+        }
+
+        @keyframes floatLetter {
+            0%, 100% { transform: translateY(0) rotate(0deg); filter: hue-rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); filter: hue-rotate(-10deg); }
+        }
+
         /* --- THE DECK COMMANDER --- */
         #deck-frame {
             position:fixed; bottom:20px; right:20px; 
-            width:60px; height:85px; z-index:1000;
+            width:60px; height:85px; z-index:1100;
             border:2px solid var(--blood-glow); border-radius:8px;
             background: rgba(30,0,0,0.6); backdrop-filter: blur(5px);
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 15px var(--blood-dark);
+            transition: 0.3s;
         }
-
+        #deck-frame:active { transform: scale(0.9); }
         #deck-frame::after { content: 'SHUFFLE'; font-size: 8px; color: var(--blood-glow); letter-spacing: 1px; }
 
         /* --- GAME BOARD --- */
         #game-board {
             flex: 1; display:grid; 
             grid-template-columns:repeat(4, 1fr);
-            gap:var(--gap); padding: 20px 10px 100px;
+            gap:var(--gap); padding: 0 10px 100px;
             justify-items: center; align-content: center;
+            z-index: 500;
         }
 
         @media (orientation: landscape) { #game-board { grid-template-columns:repeat(5, 1fr); } }
@@ -48,15 +89,17 @@
         .card-placeholder {
             width: var(--card-w); height: var(--card-h);
             position: relative; border-radius: 8px;
-            background: rgba(20,0,0,0.2); border: 1px dashed #300;
+            background: rgba(20,0,0,0.15); border: 1px dashed rgba(255,0,0,0.2);
         }
 
         .card-entity {
             position: absolute; inset: 0;
             overflow: hidden; border-radius: 8px;
             border: 1px solid var(--blood-dark);
-            background: #000; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s;
+            background: #000; 
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s;
             z-index: 600; pointer-events: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
         .slider-track {
@@ -73,8 +116,8 @@
         /* --- SMOKE EFFECT --- */
         @keyframes smokeToDeck {
             0% { transform: scale(1); filter: blur(0px) brightness(1); opacity: 1; }
-            40% { transform: scale(1.2) translateY(-10px); filter: blur(4px) brightness(2); }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0.1); filter: blur(20px) grayscale(1); opacity: 0; }
+            40% { transform: scale(1.3) translateY(-20px); filter: blur(6px) brightness(2.5); }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.1); filter: blur(25px) grayscale(1); opacity: 0; }
         }
         .smoke-out { animation: smokeToDeck 1.1s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards; }
 
@@ -82,28 +125,54 @@
 </head>
 <body>
 
+<div id="nexus-bg">
+    <video autoplay muted loop playsinline>
+        <source src="./bg/nexus_render (8).webm" type="video/webm">
+    </video>
+</div>
+
+<div class="title-container" id="blood-title"></div>
+
 <div id="game-board"></div>
 <div id="deck-frame" onclick="commander.shuffleAndDeploy()"></div>
 
 <script>
+// --- ASSET CONFIG ---
 const faceFiles = [
-    "./api/asset/Screenshot_1.jpg", "./api/asset/Screenshot_2.jpg",
-    "./api/asset/Screenshot_3.jpg", "./api/asset/Screenshot_4.jpg",
-    "./api/asset/Screenshot_5.jpg", "./api/asset/Screenshot_6.jpg",
-    "./api/asset/Screenshot_7.jpg", "./api/asset/Screenshot_8.jpg",
-    "./api/asset/Screenshot_9.jpg", "./api/asset/Screenshot_10.jpg"
+    "./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-06-39-34.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-07-31-75.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-09-18-64.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-09-46-94.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-09-59-72.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-10-12-71.jpg",
+    "./api/asset/Screenshot_2026-01-20-15-10-25-20.jpg"
 ];
 
 const videoSrc = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4";
 
+// --- COMMANDER LOGIC ---
 const commander = {
     cards: [],
     selected: [],
-    locked: true, // Locked until shuffle
+    locked: false,
 
     init() {
+        // Build Title
+        const titleText = "STARBLOOD";
+        const titleContainer = document.getElementById('blood-title');
+        titleText.split('').forEach((char, i) => {
+            const span = document.createElement('span');
+            span.className = 'blood-letter';
+            span.textContent = char;
+            span.style.animationDelay = `${i * 0.2}s`; // Independent floating
+            titleContainer.appendChild(span);
+        });
+
+        // Build 20 Slots
         const board = document.getElementById('game-board');
-        // Create 20 Placeholders
         for (let i = 0; i < 20; i++) {
             const slot = document.createElement('div');
             slot.className = 'card-placeholder';
@@ -113,10 +182,9 @@ const commander = {
     },
 
     shuffleAndDeploy() {
-        if (!this.locked && this.cards.length > 0) return;
+        if (this.locked || this.cards.length > 0) return;
         this.locked = true;
         
-        // Prepare Data
         let deckData = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
         const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
 
@@ -132,10 +200,10 @@ const commander = {
                 </div>
             `;
 
-            // Start cards at the deck
             document.body.appendChild(card);
             const slot = document.getElementById(`slot-${i}`).getBoundingClientRect();
             
+            // Start at deck
             card.style.left = deckRect.left + 'px';
             card.style.top = deckRect.top + 'px';
             card.style.width = getComputedStyle(document.documentElement).getPropertyValue('--card-w');
@@ -143,7 +211,7 @@ const commander = {
             card.style.transform = `scale(0.1)`;
             card.style.opacity = '0';
 
-            // Instruction Listener
+            // Ritual Deal
             setTimeout(() => {
                 card.style.opacity = '1';
                 card.style.transform = `translate(${slot.left - deckRect.left}px, ${slot.top - deckRect.top}px) scale(1)`;
@@ -153,15 +221,15 @@ const commander = {
             this.cards.push(card);
         });
 
-        setTimeout(() => { this.locked = false; }, 2000);
-        document.getElementById('deck-frame').style.pointerEvents = 'none';
+        setTimeout(() => { this.locked = false; }, 2200);
         document.getElementById('deck-frame').style.opacity = '0.3';
+        document.getElementById('deck-frame').style.pointerEvents = 'none';
     },
 
     handleSelection(card) {
         if (this.locked || this.selected.length >= 2 || card.classList.contains('active')) return;
         
-        card.classList.add('active'); // Slide effect
+        card.classList.add('active'); 
         this.selected.push(card);
 
         if (this.selected.length === 2) {
@@ -176,7 +244,6 @@ const commander = {
             const deck = document.getElementById('deck-frame').getBoundingClientRect();
             [a, b].forEach(card => {
                 const rect = card.getBoundingClientRect();
-                // Dynamic Smoke Trajectory
                 card.style.setProperty('--tx', (deck.left - rect.left) + 'px');
                 card.style.setProperty('--ty', (deck.top - rect.top) + 'px');
                 card.classList.add('smoke-out');
@@ -185,7 +252,7 @@ const commander = {
             this.locked = false;
         } else {
             setTimeout(() => {
-                a.classList.remove('active'); // Resume video
+                a.classList.remove('active'); 
                 b.classList.remove('active');
                 this.selected = [];
                 this.locked = false;
