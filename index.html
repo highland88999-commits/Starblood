@@ -20,7 +20,6 @@
             height: 100vh; overflow: hidden;
         }
 
-        /* Distortion & Flash Effects */
         #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.4s ease; }
         .push-active #video-container { filter: url(#push-distort-strong); }
         #entity-flash { 
@@ -32,13 +31,11 @@
 
         .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
 
-        /* Board Layout */
         #game-board {
             display: grid; grid-template-columns: repeat(4, 1fr);
             gap: var(--gap); margin-top: 30px; opacity: 0; transition: opacity 1s;
         }
 
-        /* Card Setup - Magnetic Optimized */
         .card {
             width: var(--card-w); height: var(--card-h);
             position: relative; transform-style: preserve-3d;
@@ -53,7 +50,6 @@
             border: 1px solid var(--blood-dark); overflow: hidden;
         }
         
-        /* THE FIX: Added background-size and position for proper image mapping */
         .front { 
             transform: rotateY(180deg); 
             background-size: cover; 
@@ -62,7 +58,6 @@
         }
         .back-video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* Collapsible Holoframe (The Deck) */
         #deck-frame {
             position: fixed; bottom: 20px; right: 20px;
             width: 120px; height: 160px;
@@ -83,10 +78,10 @@
             font-size: 10px; color: var(--blood-glow); text-shadow: 0 0 5px #000;
         }
 
-        /* Landing / Leaderboard UI */
         #landing, #leaderboard-overlay {
             position: fixed; inset: 0; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 400; background: #000;
+            transition: opacity 1s ease;
         }
         .landing-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
         .btn-void {
@@ -180,32 +175,29 @@
         setTimeout(() => {
             document.getElementById('landing').style.display = 'none';
             document.getElementById('game-board').style.opacity = '1';
-            document.getElementById('deck-frame').classList.add('minimized');
-            timerStart = Date.now();
-            buildBoard();
+            buildBoard(); 
+            ritualDownload();
+            setTimeout(() => {
+                document.getElementById('deck-frame').classList.add('minimized');
+                deployCards();
+                timerStart = Date.now();
+            }, 1200);
         }, 1000);
     }
 
-    // THE HYBRID WINNING FUNCTION
     function buildBoard() {
         const board = document.getElementById('game-board');
-        
-        // 1. Create pairs
         let deck = [...faceFiles, ...faceFiles];
-        
-        // 2. Fisher-Yates Shuffle (Superior randomization)
         for (let i = deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [deck[i], deck[j]] = [deck[j], deck[i]];
         }
-
         board.innerHTML = '';
-        deck.forEach(img => {
+        deck.forEach((img) => {
             const card = document.createElement('div');
             card.className = 'card';
+            card.style.opacity = "0";
             card.dataset.val = img;
-            
-            // Assigning background image with specific sizing to the front face
             card.innerHTML = `
                 <div class="face front" style="background-image:url('${img}')"></div>
                 <div class="face back">
@@ -214,17 +206,40 @@
                     </video>
                 </div>
             `;
-            
-            card.onclick = () => {
-                if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
-                card.classList.add('flipped');
-                flipped.push(card);
-                if (flipped.length === 2) {
-                    locked = true;
-                    checkMatch();
-                }
-            };
             board.appendChild(card);
+        });
+    }
+
+    function ritualDownload() {
+        const deckPos = document.getElementById('deck-frame').getBoundingClientRect();
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = (deckPos.left + deckPos.width/2) - (rect.left + rect.width/2);
+            const y = (deckPos.top + deckPos.height/2) - (rect.top + rect.height/2);
+            card.style.transition = "none";
+            card.style.transform = `translate(${x}px, ${y}px) scale(0.1)`;
+            card.style.opacity = "1";
+        });
+    }
+
+    function deployCards() {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, i) => {
+            setTimeout(() => {
+                card.style.transition = "transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.5s";
+                card.style.transform = `translate(0, 0) scale(1)`;
+                card.style.opacity = "1";
+                card.onclick = () => {
+                    if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
+                    card.classList.add('flipped');
+                    flipped.push(card);
+                    if (flipped.length === 2) {
+                        locked = true;
+                        checkMatch();
+                    }
+                };
+            }, i * 30);
         });
     }
 
@@ -273,7 +288,6 @@
         localData.push(record);
         localData.sort((a,b) => a.time - b.time);
         localStorage.setItem('star_records', JSON.stringify(localData));
-
         document.getElementById('score-list').innerHTML = localData.map((r, i) => `
             <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #400;">
                 <span>${i+1}. ${r.name}</span> <strong>${r.time}s</strong>
