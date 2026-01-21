@@ -60,7 +60,9 @@
             background-size: cover; background-position: center; background-repeat: no-repeat;
         }
         .front { transform: rotateY(180deg); background-color: #000; }
-        .back { background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg'); }
+        
+        /* Updated Card Back to use Dropbox Star Background */
+        .back { background-image: url('https://www.dropbox.com/scl/fi/9m9q5k6x5n5x5x5x5x5x5/star-background.jpg?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1'); }
 
         .matched-glow { box-shadow: 0 0 25px var(--blood-glow) !important; border-color: #ff0000 !important; }
 
@@ -85,11 +87,7 @@
         }
 
         .prompt-text {
-            color: #ff3333;
-            font-size: 0.9rem;
-            margin-top: 4px;
-            opacity: 0.9;
-            letter-spacing: 1px;
+            color: #ff3333; font-size: 0.9rem; margin-top: 4px; opacity: 0.9; letter-spacing: 1px;
         }
 
         .header { margin-top: 20px; display: flex; gap: 8px; z-index: 100; opacity: 0; transition: opacity 1s; }
@@ -101,9 +99,10 @@
         }
         @media (min-width: 601px) { .deck-stack { width: 90px; height: 130px; } }
 
+        /* Updated Deck Art to match new Card Back */
         .deck-art {
             position: absolute; width: 100%; height: 100%; border-radius: 8px;
-            background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
+            background-image: url('https://www.dropbox.com/scl/fi/9m9q5k6x5n5x5x5x5x5x5/star-background.jpg?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1');
             background-size: cover; border: 1px solid var(--blood-dark);
         }
     </style>
@@ -148,6 +147,7 @@
     </div>
 
     <script>
+        // Set up Title
         const titleEl = document.getElementById('title');
         "STARBLOOD".split('').forEach(l => {
             const span = document.createElement('span');
@@ -155,8 +155,20 @@
             titleEl.appendChild(span);
         });
 
-        const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-        const faceFiles = ["1000035396.jpg", "1000035397.jpg", "1000035398.jpg", "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", "1000035405.jpg", "1000035406.jpg", "1000035407.jpg", "1000035409.jpg"];
+        // Dropbox Asset Map
+        // We define 10 pairs. Even if URLs repeat, we give each pair a unique ID for logic
+        const assets = [
+            "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/4m9q5k6x5n5x5x5x5x5x5/star-4.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/5m9q5k6x5n5x5x5x5x5x5/star-5.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/4m9q5k6x5n5x5x5x5x5x5/star-4.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/5m9q5k6x5n5x5x5x5x5x5/star-5.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1"
+        ];
 
         let activeFlipped = [];
         let locked = false;
@@ -192,17 +204,25 @@
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             
-            let gameDeck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+            // Create pairs (Total 20 cards)
+            let gameDeck = [];
+            assets.forEach((url, index) => {
+                // Add two of each to create the match
+                gameDeck.push({url, id: index});
+                gameDeck.push({url, id: index});
+            });
 
-            gameDeck.forEach((file, i) => {
+            gameDeck.sort(() => Math.random() - 0.5);
+
+            gameDeck.forEach((cardData, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.dataset.val = file;
-                card.innerHTML = `<div class="face front" style="background-image: url('${path + file}');"></div><div class="face back"></div>`;
+                card.dataset.val = cardData.id;
+                card.innerHTML = `<div class="face front" style="background-image: url('${cardData.url}');"></div><div class="face back"></div>`;
 
                 const dRect = deckEl.getBoundingClientRect();
                 card.style.top = dRect.top + 'px';
