@@ -18,9 +18,9 @@
             font-family: 'Courier New', monospace;
             display: flex; flex-direction: column; align-items: center;
             height: 100vh; width: 100vw; overflow: hidden; touch-action: none;
+            -webkit-user-select: none; user-select: none;
         }
 
-        /* Free floating blood style letters */
         .blood-header {
             position: fixed; top: 20px; z-index: 1000;
             color: var(--blood-glow); letter-spacing: 12px;
@@ -29,16 +29,16 @@
             pointer-events: none; opacity: 0.9; text-align: center; width: 100%;
         }
 
-        /* Background Video - Correct URL */
         #video-container { position: fixed; inset: 0; z-index: -10; pointer-events: none; }
         .bg-vid-main { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
-        /* Game Board Layer */
+        /* Board - Forced interaction layer */
         #game-board {
             position: relative; z-index: 500; 
             display: grid; grid-template-columns: repeat(4, 1fr); 
             gap: var(--gap); margin: auto; padding-top: 80px;
             opacity: 0; transition: opacity 1s;
+            pointer-events: auto; /* Ensure touches pass through to children */
         }
 
         @media (orientation: landscape) {
@@ -50,6 +50,7 @@
             position: relative; transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
             cursor: pointer; -webkit-tap-highlight-color: transparent;
+            touch-action: none; /* Prevents mobile panning on the card itself */
         }
         .card.flipped { transform: rotateY(180deg); }
 
@@ -57,31 +58,21 @@
             position: absolute; inset: 0; backface-visibility: hidden; 
             -webkit-backface-visibility: hidden; border-radius: 8px;
             border: 1px solid var(--blood-dark); overflow: hidden;
-            background: #000;
+            background: #000; pointer-events: none; /* Let parent .card handle clicks */
         }
         
-        /* Image visible ONLY when turning */
-        .front { 
-            transform: rotateY(180deg); 
-            background-size: cover; 
-            background-position: center;
-        }
+        .front { transform: rotateY(180deg); background-size: cover; background-position: center; }
+        .back-video { width: 100%; height: 100%; object-fit: cover; }
 
-        .back-video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-
-        /* Landing Page */
         #landing {
             position: fixed; inset: 0; z-index: 2000; background: #000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s ease;
         }
         .landing-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.7; z-index: -1; }
-        
         .btn-void {
             padding: 18px 45px; border: 2px solid var(--blood-glow);
             background: rgba(0,0,0,0.7); color: var(--blood-glow);
-            font-size: 1.3rem; cursor: pointer; letter-spacing: 6px;
-            z-index: 2100;
+            font-size: 1.3rem; cursor: pointer; letter-spacing: 6px; z-index: 2100;
         }
 
         #deck-frame {
@@ -108,7 +99,7 @@
     <video autoplay muted loop playsinline class="landing-vid">
         <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
     </video>
-    <button class="btn-void" onclick="enterVoid()">ENTER VOID</button>
+    <button class="btn-void" onpointerdown="enterVoid()">ENTER VOID</button>
 </div>
 
 <div id="deck-frame">
@@ -120,7 +111,7 @@
 <div id="game-board"></div>
 
 <script>
-    // Exact mapping to your api/asset folder
+    // Asset Synchronization from highland88999-commits/Starblood
     const faceFiles = [
         "./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
         "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
@@ -188,7 +179,10 @@
             setTimeout(() => {
                 card.style.transition = "transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s";
                 card.style.transform = `translate(0, 0) scale(1)`;
-                card.onclick = () => {
+                
+                // Switch to pointerdown for instant mobile response
+                card.onpointerdown = (e) => {
+                    e.preventDefault();
                     if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
                     card.classList.add('flipped');
                     flipped.push(card);
