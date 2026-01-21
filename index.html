@@ -8,8 +8,6 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #b30000;
-            --neon-glow: #ffd700;
-            --glass-bg: rgba(20, 0, 0, 0.35);
             --card-w: 85px;
             --card-h: 120px;
         }
@@ -39,7 +37,7 @@
 
         #username-input {
             font-size: 1.6rem; padding: 14px 28px; border: 2px solid var(--blood-dark);
-            border-radius: 10px; background: var(--glass-bg); color: white;
+            border-radius: 10px; background: rgba(20, 0, 0, 0.35); color: white;
             text-align: center; box-shadow: inset 0 0 12px var(--blood-glow), 0 0 25px var(--blood-glow);
             margin-bottom: 20px; width: 300px;
         }
@@ -94,8 +92,6 @@
             position: absolute; width: 100%; height: 100%; border-radius: 10px;
             background-size: cover; background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
         }
-
-        #timer { position: fixed; top: 10px; right: 10px; font-size: 1.5rem; color: var(--blood-glow); opacity: 0; transition: opacity 1s; }
     </style>
 </head>
 <body>
@@ -117,7 +113,6 @@
     </div>
 
     <div class="header" id="title"></div>
-    <div id="timer">00:00</div>
     <div id="game-board"></div>
 
     <div class="deck-stack" id="deck" onclick="initGame()">
@@ -137,13 +132,13 @@
 
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
         
-        // Face files updated with the new screenshot URL
+        // Exact inventory of 12 unique images
         const faceFiles = [
             "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", 
             "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", 
             "1000035405.jpg", "1000035406.jpg", "1000035407.jpg", 
             "1000035409.jpg", "1000035411.jpg",
-            "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/Screenshot_2026-01-20-15-02-24-76_680d03679600f7af0b4c700c6b270fe7.jpg"
+            "Screenshot_2026-01-20-15-02-24-76_680d03679600f7af0b4c700c6b270fe7.jpg"
         ];
 
         let activeFlipped = [];
@@ -152,15 +147,13 @@
         const deckEl = document.getElementById('deck');
 
         function enterVoid() {
-            const name = document.getElementById('username-input').value;
-            if(!name) return;
+            if(!document.getElementById('username-input').value) return;
             document.getElementById('landing').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('landing').style.display = 'none';
                 document.getElementById('title').style.opacity = '1';
                 document.getElementById('game-board').style.opacity = '1';
                 document.getElementById('deck').style.opacity = '1';
-                document.getElementById('timer').style.opacity = '1';
             }, 1800);
         }
 
@@ -180,7 +173,7 @@
                 card.className = 'card';
                 card.dataset.val = file;
                 
-                // Checks if file is a full URL or just a filename
+                // FIXED URL LOGIC INTEGRATED HERE
                 const imgUrl = file.startsWith('http') ? file : `${path}${file}`;
                 
                 card.innerHTML = `
@@ -200,7 +193,7 @@
                 }, i * 60);
 
                 card.onclick = () => {
-                    if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
+                    if (locked || card.classList.contains('flipped')) return;
                     card.classList.add('flipped');
                     activeFlipped.push(card);
                     if (activeFlipped.length === 2) checkMatch();
