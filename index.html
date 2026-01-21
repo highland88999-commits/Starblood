@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S T A R B L O O D</title>
     <style>
         :root {
@@ -13,210 +13,102 @@
             --gap: 12px;
         }
 
-        * { box-sizing: border-box; }
-
         body {
-            margin: 0;
-            background: #000;
-            color: white;
+            margin: 0; background: #000; color: white;
             font-family: 'Courier New', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+            height: 100vh; overflow: hidden;
         }
 
-        /* Background & effects */
-        #video-container {
-            position: fixed;
-            inset: 0;
-            z-index: -10;
-            transition: filter 0.4s ease;
-        }
-        .push-active #video-container {
-            filter: url(#push-distort-strong);
-        }
-        #entity-flash {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 260;
-            opacity: 0;
+        /* Distortion & Flash Effects */
+        #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.4s ease; }
+        .push-active #video-container { filter: url(#push-distort-strong); }
+        #entity-flash { 
+            position: fixed; inset: 0; pointer-events: none; z-index: 260; opacity: 0; 
             transition: opacity 0.4s ease-in-out;
             background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.45) 0%, transparent 70%);
             mix-blend-mode: screen;
         }
 
-        .bg-vid {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.3;
-        }
+        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
 
-        /* Board */
+        /* Board Layout */
         #game-board {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(70px, 1fr));
-            gap: var(--gap);
-            margin: 30px auto;
-            max-width: 520px;
-            opacity: 0;
-            transition: opacity 1.2s ease;
-        }
-        @media (max-width: 480px) {
-            #game-board {
-                grid-template-columns: repeat(4, 1fr);
-                max-width: 380px;
-                gap: 8px;
-            }
-            :root {
-                --card-w: 78px;
-                --card-h: 110px;
-                --gap: 8px;
-            }
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: var(--gap); margin-top: 30px; opacity: 0; transition: opacity 1s;
         }
 
-        /* Cards */
+        /* Card Setup - Magnetic Optimized */
         .card {
-            width: var(--card-w);
-            height: var(--card-h);
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.23,1,0.32,1),
-                        opacity 0.8s, top 0.8s, left 0.8s;
+            width: var(--card-w); height: var(--card-h);
+            position: relative; transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s;
             cursor: pointer;
-            user-select: none;
         }
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
+        .card.flipped { transform: rotateY(180deg); }
+
         .face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 10px;
-            border: 1px solid var(--blood-dark);
-            overflow: hidden;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 10px;
+            border: 1px solid var(--blood-dark); overflow: hidden;
         }
-        .front {
-            transform: rotateY(180deg);
-            background-size: cover;
+        
+        /* THE FIX: Added background-size and position for proper image mapping */
+        .front { 
+            transform: rotateY(180deg); 
+            background-size: cover; 
             background-position: center;
+            background-repeat: no-repeat;
         }
-        .back-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            pointer-events: none;
-            opacity: 0.85;
-        }
+        .back-video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* Deck frame (minimized after start) */
+        /* Collapsible Holoframe (The Deck) */
         #deck-frame {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 120px;
-            height: 160px;
-            background: rgba(40,0,0,0.4);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--blood-glow);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: all 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
-            z-index: 100;
-            box-shadow: 0 0 15px var(--blood-dark);
-        }
-        #deck-frame.minimized {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            bottom: 16px;
-            right: 16px;
-        }
-        .deck-vid-bg {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.5;
-        }
-        #deck-count {
-            position: absolute;
-            bottom: 4px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: var(--blood-glow);
-            text-shadow: 0 0 5px #000;
+            position: fixed; bottom: 20px; right: 20px;
+            width: 120px; height: 160px;
+            background: rgba(40, 0, 0, 0.3); backdrop-filter: blur(10px);
+            border: 1px solid var(--blood-glow); border-radius: 10px;
+            overflow: hidden; transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            z-index: 100; box-shadow: 0 0 15px var(--blood-dark);
         }
 
-        /* Overlays */
+        #deck-frame.minimized {
+            width: 60px; height: 60px; border-radius: 50%;
+            bottom: 15px; right: 15px;
+        }
+
+        .deck-vid-bg { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        #deck-count {
+            position: absolute; bottom: 5px; width: 100%; text-align: center;
+            font-size: 10px; color: var(--blood-glow); text-shadow: 0 0 5px #000;
+        }
+
+        /* Landing / Leaderboard UI */
         #landing, #leaderboard-overlay {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 400;
-            background: #000;
-            transition: opacity 1s;
+            position: fixed; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 400; background: #000;
         }
-        .landing-vid {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.6;
-        }
+        .landing-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
         .btn-void {
-            z-index: 10;
-            padding: 16px 60px;
-            background: transparent;
-            border: 2px solid var(--blood-glow);
-            color: var(--blood-glow);
-            font-size: 1.3rem;
-            cursor: pointer;
-            letter-spacing: 6px;
-            transition: all 0.3s;
-        }
-        .btn-void:hover {
-            background: rgba(255,51,51,0.12);
-            box-shadow: 0 0 25px var(--blood-glow);
+            z-index: 10; padding: 15px 50px; background: transparent; 
+            border: 2px solid var(--blood-glow); color: var(--blood-glow);
+            font-size: 1.2rem; cursor: pointer; letter-spacing: 5px;
         }
 
         .holo-frame {
-            background: rgba(20,0,0,0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--blood-glow);
-            padding: 24px;
-            border-radius: 15px;
-            width: 88%;
-            max-width: 460px;
-            text-align: center;
-        }
-
-        h1 {
-            color: var(--blood-glow);
-            letter-spacing: 14px;
-            margin: 24px 0 16px;
-            font-size: 2.4rem;
-            text-shadow: 0 0 20px var(--blood-dark);
+            background: rgba(20, 0, 0, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid var(--blood-glow); padding: 20px; border-radius: 15px;
+            width: 80%; max-width: 450px; text-align: center;
         }
     </style>
 </head>
 <body>
 
-<svg width="0" height="0" style="position:absolute">
+<svg width="0" height="0" style="position: absolute;">
     <defs>
         <filter id="push-distort-strong">
-            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G"/>
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G" />
         </filter>
     </defs>
 </svg>
@@ -236,180 +128,159 @@
     <button class="btn-void" onclick="enterVoid()">ENTER VOID</button>
 </div>
 
-<div id="deck-frame" class="minimized">
+<div id="deck-frame">
     <video autoplay muted loop playsinline class="deck-vid-bg">
         <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
     </video>
     <span id="deck-count">MATCHES: 0/10</span>
 </div>
 
-<h1>STARBLOOD</h1>
+<h1 style="color:var(--blood-glow); letter-spacing: 12px; margin: 20px 0 10px 0;">STARBLOOD</h1>
 <div id="game-board"></div>
 
-<div id="leaderboard-overlay" style="display:none; background:rgba(0,0,0,0.9);">
+<div id="leaderboard-overlay" style="display:none;">
     <div class="holo-frame">
-        <h2 style="color:var(--blood-glow); letter-spacing:6px; margin:0 0 20px;">RECORDS</h2>
-        <div id="score-list" style="margin:20px 0; max-height:260px; overflow-y:auto; font-size:1.1rem;"></div>
-        <button class="btn-void" style="font-size:1rem; padding:12px 40px;" onclick="location.reload()">RESTART</button>
+        <h2 style="color:var(--blood-glow); letter-spacing: 5px;">RECORDS</h2>
+        <div id="score-list" style="margin: 20px 0; max-height: 250px; overflow-y: auto;"></div>
+        <button class="btn-void" style="font-size: 0.8rem;" onclick="location.reload()">RESTART</button>
     </div>
 </div>
 
 <script>
-// ────────────────────────────────────────────────
-const faceFiles = [
-    "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-06-39-34.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-07-31-75.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-09-18-64.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-09-46-94.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-09-59-72.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-10-12-71.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-10-25-20.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-07-08-09.jpg"
-];
+    const faceFiles = [
+        "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-06-39-34.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-07-31-75.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-09-18-64.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-09-46-94.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-09-59-72.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-10-12-71.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-10-25-20.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-07-08-09.jpg"
+    ];
 
-const cardBackVid = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4";
+    const cardBackVid = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4"; 
+    let flipped = [];
+    let matches = 0;
+    let timerStart;
+    let locked = false;
 
-let flipped = [];
-let matches = 0;
-let locked = false;
-let timerStart = null;
-
-// ────────────────────────────────────────────────
-function triggerFacePush() {
-    document.body.classList.add('push-active');
-    document.getElementById('entity-flash').style.opacity = '1';
-    setTimeout(() => {
-        document.body.classList.remove('push-active');
-        document.getElementById('entity-flash').style.opacity = '0';
-    }, 800);
-}
-
-function enterVoid() {
-    const landing = document.getElementById('landing');
-    landing.style.opacity = '0';
-    setTimeout(() => {
-        landing.style.display = 'none';
-        document.getElementById('game-board').style.opacity = '1';
-        document.getElementById('deck-frame').classList.remove('minimized');
-        timerStart = Date.now();
-        buildBoard();
-    }, 900);
-}
-
-function buildBoard() {
-    const board = document.getElementById('game-board');
-    board.innerHTML = '';
-
-    let deck = [...faceFiles, ...faceFiles];
-
-    // Fisher-Yates shuffle
-    for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
+    function triggerFacePush() {
+        document.body.classList.add('push-active');
+        document.getElementById('entity-flash').style.opacity = '1';
+        setTimeout(() => {
+            document.body.classList.remove('push-active');
+            document.getElementById('entity-flash').style.opacity = '0';
+        }, 800);
     }
 
-    deck.forEach(img => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.val = img;
-
-        card.innerHTML = `
-            <div class="face front" style="background-image:url('${img}');"></div>
-            <div class="face back">
-                <video autoplay muted loop playsinline class="back-video">
-                    <source src="${cardBackVid}" type="video/mp4">
-                </video>
-            </div>
-        `;
-
-        card.addEventListener('click', () => {
-            if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
-
-            card.classList.add('flipped');
-            flipped.push(card);
-
-            if (flipped.length === 2) {
-                locked = true;
-                setTimeout(checkMatch, 800);
-            }
-        });
-
-        board.appendChild(card);
-    });
-}
-
-function checkMatch() {
-    const [cardA, cardB] = flipped;
-
-    if (cardA.dataset.val === cardB.dataset.val) {
-        matches++;
-        document.getElementById('deck-count').innerText = `MATCHES: ${matches}/10`;
-        magneticToDeck(cardA, cardB);
-        flipped = [];
-        locked = false;
-
-        if (matches === 10) {
-            const timeTaken = ((Date.now() - timerStart) / 1000).toFixed(2);
-            setTimeout(() => {
-                triggerFacePush();
-                setTimeout(() => showLeaderboard(timeTaken), 900);
-            }, 1200);
-        }
-    } else {
+    function enterVoid() {
+        document.getElementById('landing').style.opacity = '0';
         setTimeout(() => {
-            cardA.classList.remove('flipped');
-            cardB.classList.remove('flipped');
-            flipped = [];
-            locked = false;
+            document.getElementById('landing').style.display = 'none';
+            document.getElementById('game-board').style.opacity = '1';
+            document.getElementById('deck-frame').classList.add('minimized');
+            timerStart = Date.now();
+            buildBoard();
         }, 1000);
     }
-}
 
-function magneticToDeck(card1, card2) {
-    const deck = document.getElementById('deck-frame');
-    const deckRect = deck.getBoundingClientRect();
+    // THE HYBRID WINNING FUNCTION
+    function buildBoard() {
+        const board = document.getElementById('game-board');
+        
+        // 1. Create pairs
+        let deck = [...faceFiles, ...faceFiles];
+        
+        // 2. Fisher-Yates Shuffle (Superior randomization)
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
 
-    [card1, card2].forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const dx = (deckRect.left + deckRect.width / 2) - (rect.left + rect.width / 2);
-        const dy = (deckRect.top  + deckRect.height / 2) - (rect.top  + rect.height / 2);
+        board.innerHTML = '';
+        deck.forEach(img => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.val = img;
+            
+            // Assigning background image with specific sizing to the front face
+            card.innerHTML = `
+                <div class="face front" style="background-image:url('${img}')"></div>
+                <div class="face back">
+                    <video autoplay muted loop playsinline class="back-video">
+                        <source src="${cardBackVid}" type="video/mp4">
+                    </video>
+                </div>
+            `;
+            
+            card.onclick = () => {
+                if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
+                card.classList.add('flipped');
+                flipped.push(card);
+                if (flipped.length === 2) {
+                    locked = true;
+                    checkMatch();
+                }
+            };
+            board.appendChild(card);
+        });
+    }
 
-        card.style.transition = 'transform 1.1s ease-out, opacity 1.1s';
-        card.style.transform = `translate(${dx}px, ${dy}px) rotateY(180deg) scale(0.08)`;
-        card.style.opacity = '0';
-        card.style.pointerEvents = 'none';
-    });
-}
+    function checkMatch() {
+        const [a, b] = flipped;
+        if (a.dataset.val === b.dataset.val) {
+            matches++;
+            document.getElementById('deck-count').innerText = `MATCHES: ${matches}/10`;
+            magneticToDeck(a, b);
+            flipped = [];
+            locked = false;
+            if (matches === 10) {
+                const totalTime = ((Date.now() - timerStart) / 1000).toFixed(2);
+                setTimeout(() => {
+                    triggerFacePush();
+                    setTimeout(() => finalizeRecord(totalTime), 1000);
+                }, 1000);
+            }
+        } else {
+            setTimeout(() => {
+                a.classList.remove('flipped');
+                b.classList.remove('flipped');
+                flipped = [];
+                locked = false;
+            }, 1000);
+        }
+    }
 
-function showLeaderboard(time) {
-    let name = prompt("ENTITY DETECTED.\nENTER DESIGNATION:", "VOIDWALKER")?.trim() || "ANONYMOUS";
-    if (name.length > 18) name = name.slice(0,18);
+    function magneticToDeck(card1, card2) {
+        const deck = document.getElementById('deck-frame');
+        const deckRect = deck.getBoundingClientRect();
+        [card1, card2].forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = (deckRect.left + deckRect.width/2) - (rect.left + rect.width/2);
+            const y = (deckRect.top + deckRect.height/2) - (rect.top + rect.height/2);
+            card.style.transform = `translate(${x}px, ${y}px) rotateY(180deg) scale(0.1)`;
+            card.style.opacity = "0";
+            card.style.pointerEvents = "none";
+        });
+    }
 
-    const record = {
-        name,
-        time: parseFloat(time),
-        date: new Date().toLocaleDateString()
-    };
+    function finalizeRecord(time) {
+        const name = prompt("IDENTITY VERIFIED. ENTER NAME:") || "ANONYMOUS";
+        const record = { name, time: parseFloat(time), date: new Date().toLocaleDateString() };
+        let localData = JSON.parse(localStorage.getItem('star_records') || '[]');
+        localData.push(record);
+        localData.sort((a,b) => a.time - b.time);
+        localStorage.setItem('star_records', JSON.stringify(localData));
 
-    let records = JSON.parse(localStorage.getItem('starblood_records') || '[]');
-    records.push(record);
-    records.sort((a,b) => a.time - b.time);
-    localStorage.setItem('starblood_records', JSON.stringify(records));
-
-    const listEl = document.getElementById('score-list');
-    listEl.innerHTML = records.map((r,i) => `
-        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #400;">
-            <span>${i+1}. ${r.name}</span>
-            <strong>${r.time.toFixed(2)}s</strong>
-        </div>
-    `).join('');
-
-    document.getElementById('leaderboard-overlay').style.display = 'flex';
-}
-
-// ────────────────────────────────────────────────
+        document.getElementById('score-list').innerHTML = localData.map((r, i) => `
+            <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #400;">
+                <span>${i+1}. ${r.name}</span> <strong>${r.time}s</strong>
+            </div>
+        `).join('');
+        document.getElementById('leaderboard-overlay').style.display = 'flex';
+    }
 </script>
 </body>
 </html>
