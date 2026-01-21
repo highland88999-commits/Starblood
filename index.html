@@ -24,7 +24,6 @@
         #video-container { position: fixed; inset: 0; z-index: -10; }
         .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
 
-        /* Landing Page: Set to Loop */
         #landing {
             position: fixed; inset: 0; z-index: 200; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -51,7 +50,6 @@
             box-shadow: 0 0 30px var(--blood-glow); border-radius: 10px;
         }
 
-        /* Game Elements */
         .header { margin-top: 5px; display: flex; gap: 6px; z-index: 100; opacity: 0; transition: opacity 1s; }
         .letter {
             font-size: 3.2rem; font-weight: 900; color: var(--blood-glow);
@@ -67,7 +65,6 @@
         }
         .slot { width: var(--card-w); height: var(--card-h); border: 1px solid var(--blood-dark); border-radius: 10px; }
 
-        /* Fused 3D Object */
         .card {
             width: var(--card-w); height: var(--card-h);
             position: absolute; transform-style: preserve-3d;
@@ -130,7 +127,6 @@
     </div>
 
     <script>
-        // Title setup
         const titleEl = document.getElementById('title');
         "STARBLOOD".split('').forEach((l, i) => {
             const span = document.createElement('span');
@@ -140,7 +136,15 @@
         });
 
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-        const faceFiles = ["1000035396.jpg", "1000035397.jpg", "1000035398.jpg", "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", "1000035405.jpg", "1000035406.jpg", "1000035407.jpg", "1000035409.jpg", "1000035411.jpg", "1000035415.jpg"];
+        
+        // Face files updated with the new screenshot URL
+        const faceFiles = [
+            "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", 
+            "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", 
+            "1000035405.jpg", "1000035406.jpg", "1000035407.jpg", 
+            "1000035409.jpg", "1000035411.jpg",
+            "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/Screenshot_2026-01-20-15-02-24-76_680d03679600f7af0b4c700c6b270fe7.jpg"
+        ];
 
         let activeFlipped = [];
         let locked = false;
@@ -175,8 +179,12 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.val = file;
+                
+                // Checks if file is a full URL or just a filename
+                const imgUrl = file.startsWith('http') ? file : `${path}${file}`;
+                
                 card.innerHTML = `
-                    <div class="face front" style="background-image: url('${path}${file}');"></div>
+                    <div class="face front" style="background-image: url('${imgUrl}');"></div>
                     <div class="face back"></div>
                 `;
 
