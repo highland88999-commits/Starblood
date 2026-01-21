@@ -8,6 +8,8 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #b30000;
+            --neon-glow: #ffd700;
+            --glass-bg: rgba(20, 0, 0, 0.35);
             --card-w: 90px;
             --card-h: 130px;
         }
@@ -22,39 +24,66 @@
             align-items: center;
             overflow: hidden;
             height: 100vh;
+            position: relative;
         }
 
-        #video-container { 
-            position: fixed; 
-            inset: 0; 
-            z-index: -10; 
-        }
-        .bg-vid { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            opacity: 0.35; 
+        #video-container {
+            position: fixed;
+            inset: 0;
+            z-index: -10;
         }
 
+        .bg-vid {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.35;
+        }
+
+        /* Glowing circular placeholder above title */
+        #glow-video-placeholder {
+            width: 180px;
+            height: 180px;
+            margin: 30px auto 10px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 40px var(--blood-glow), 0 0 80px rgba(179,0,0,0.7), inset 0 0 30px rgba(139,0,0,0.8);
+            animation: pulse-glow 6s infinite ease-in-out;
+            z-index: 90;
+        }
+
+        #glow-video-placeholder video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(1.1) contrast(1.15) saturate(1.4);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 40px var(--blood-glow), 0 0 80px rgba(179,0,0,0.7); }
+            50% { box-shadow: 0 0 60px var(--blood-glow), 0 0 120px rgba(179,0,0,1); }
+        }
+
+        /* Landing with intro video */
         #landing {
-            position: fixed; 
-            inset: 0; 
-            z-index: 200; 
+            position: fixed;
+            inset: 0;
+            z-index: 200;
             background: #000;
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
             transition: opacity 1.8s ease-out;
         }
 
-        .intro-vid { 
-            position: absolute; 
-            inset: 0; 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            opacity: 1; 
+        .intro-vid {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 1;
             transition: opacity 1.8s ease-out;
         }
 
@@ -75,10 +104,11 @@
             padding: 14px 28px;
             border: 2px solid var(--blood-dark);
             border-radius: 10px;
-            background: rgba(20, 0, 0, 0.35);
+            background: var(--glass-bg);
             color: white;
             text-align: center;
-            box-shadow: inset 0 0 12px var(--blood-glow), 0 0 25px var(--blood-glow);
+            box-shadow: inset 0 0 12px var(--blood-glow), 0 0 25px var(--blood-glow), 0 0 45px rgba(139,0,0,0.6);
+            backdrop-filter: blur(6px);
             margin-bottom: 20px;
             width: 300px;
         }
@@ -92,15 +122,32 @@
             cursor: pointer;
             box-shadow: 0 0 30px var(--blood-glow);
             border-radius: 10px;
+            backdrop-filter: blur(4px);
+        }
+
+        #start-btn:hover { background: rgba(139,0,0,0.3); }
+
+        #fade-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent, rgba(139,0,0,0.7), #000);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 205;
+            transition: opacity 1.5s ease-out;
+        }
+
+        /* Game elements fade in after landing */
+        .header, #game-board, .deck-stack {
+            opacity: 0;
+            transition: opacity 1.2s ease-in 0.6s;
         }
 
         .header {
-            margin-top: 20px;
+            margin-top: 5px;
             display: flex;
             gap: 6px;
             z-index: 100;
-            opacity: 0;
-            transition: opacity 1.2s ease-in;
         }
 
         .letter {
@@ -108,7 +155,6 @@
             font-weight: 900;
             color: var(--blood-glow);
             text-shadow: 0 0 10px var(--blood-glow);
-            display: inline-block;
             animation: bleed 4s infinite ease-in-out;
         }
 
@@ -125,8 +171,6 @@
             max-width: 720px;
             margin-top: 10px;
             perspective: 1400px;
-            opacity: 0;
-            transition: opacity 1.2s ease-in;
         }
 
         .slot {
@@ -139,24 +183,21 @@
         }
 
         .card {
-            width: var(--card-w);
-            height: var(--card-h);
+            width: 100%;
+            height: 100%;
             position: absolute;
             top: 0;
             left: 0;
             transform-style: preserve-3d;
-            transition: 
-                transform 0.7s cubic-bezier(0.4,0,0.2,1),
-                top 0.9s cubic-bezier(0.5,0,0.5,1),
-                left 0.9s cubic-bezier(0.5,0,0.5,1),
-                opacity 0.6s;
+            transition: transform 0.7s cubic-bezier(0.4,0,0.2,1),
+                        top 0.9s cubic-bezier(0.5,0,0.5,1),
+                        left 0.9s cubic-bezier(0.5,0,0.5,1),
+                        opacity 0.6s;
             cursor: pointer;
             z-index: 10;
         }
 
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
+        .card.flipped { transform: rotateY(180deg); }
 
         .card.returning {
             pointer-events: none;
@@ -175,9 +216,7 @@
             box-shadow: inset 0 0 15px var(--blood-glow);
         }
 
-        .front {
-            transform: rotateY(180deg);
-        }
+        .front { transform: rotateY(180deg); }
 
         .back {
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
@@ -195,8 +234,10 @@
             height: 125px;
             cursor: pointer;
             z-index: 200;
-            opacity: 0;
-            transition: opacity 1.2s ease-in;
+            border-radius: 12px;
+            border: 2px solid var(--blood-dark);
+            box-shadow: 0 0 25px var(--blood-glow), inset 0 0 15px var(--blood-glow);
+            backdrop-filter: blur(4px);
         }
 
         .deck-art {
@@ -206,7 +247,6 @@
             border-radius: 10px;
             background-size: cover;
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
-            box-shadow: 0 0 25px var(--blood-glow);
         }
 
         .deck-label {
@@ -216,6 +256,90 @@
             text-align: center;
             font-size: 10px;
             color: var(--blood-glow);
+        }
+
+        /* Blood Rain */
+        .rain-drop {
+            position: absolute;
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(to bottom, var(--blood-glow), var(--blood-dark));
+            opacity: 0.9;
+            border-radius: 50% 50% 0 0;
+            box-shadow: 0 0 12px var(--blood-glow);
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-120%); }
+            100% { transform: translateY(120vh); }
+        }
+
+        /* End screen */
+        #end-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+
+        #congrats-message {
+            font-size: 3rem;
+            color: var(--blood-glow);
+            text-shadow: 0 0 20px var(--blood-glow);
+            padding: 20px 40px;
+            border: 3px solid var(--blood-dark);
+            border-radius: 12px;
+            box-shadow: 0 0 40px var(--blood-glow), inset 0 0 25px var(--blood-glow);
+            backdrop-filter: blur(8px);
+            animation: bounceBlood 2s infinite;
+        }
+
+        @keyframes bounceBlood {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* Surprise push effect */
+        #push-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 250;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .push-active #video-container {
+            filter: url(#push-distort-strong);
+            transition: filter 0.4s ease-in;
+        }
+
+        #entity-flash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 260;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.4) 0%, transparent 70%);
+            mix-blend-mode: screen;
+        }
+
+        #entity-flash > div {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 320px; height: 420px;
+            transform: translate(-50%, -50%) scale(0.85);
+            background: radial-gradient(ellipse at 50% 40%, #fff 0%, #000 35%, transparent 65%);
+            filter: invert(1) hue-rotate(170deg) brightness(1.3);
+            opacity: 0.75;
+            border-radius: 50%;
+            box-shadow: 0 0 100px #b30000;
         }
     </style>
 </head>
@@ -227,14 +351,28 @@
         </video>
     </div>
 
+    <!-- Glowing circular placeholder -->
+    <div id="glow-video-placeholder">
+        <video autoplay muted loop playsinline>
+            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Landing intro video -->
     <div id="landing">
         <video id="intro-video" autoplay muted playsinline class="intro-vid">
             <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
         </video>
         <div class="landing-content">
-            <input id="username-input" type="text" placeholder="Enter Username" maxlength="20">
+            <input id="username-input" type="text" placeholder="Enter Username" maxlength="20" autocomplete="off">
             <button id="start-btn">Enter the Void</button>
         </div>
+    </div>
+
+    <div id="fade-overlay"></div>
+
+    <div id="entity-flash">
+        <div></div>
     </div>
 
     <div class="header" id="title"></div>
@@ -247,6 +385,26 @@
         <div class="deck-label">SHUFFLE</div>
     </div>
 
+    <div id="end-overlay">
+        <div id="congrats-message">Starblood Awakens! Victory in the Cosmos!</div>
+        <div id="leaderboard"></div>
+    </div>
+
+    <!-- SVG filter for distortion -->
+    <svg width="0" height="0" style="position:absolute;">
+        <defs>
+            <filter id="push-distort-strong" x="-50%" y="-50%" width="200%" height="200%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.005 0.01" numOctaves="5" seed="42" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+                <feComponentTransfer>
+                    <feFuncR type="linear" slope="1.5"/>
+                    <feFuncG type="linear" slope="1.5"/>
+                    <feFuncB type="linear" slope="1.5"/>
+                </feComponentTransfer>
+            </filter>
+        </defs>
+    </svg>
+
     <script>
         // Title animation
         const titleEl = document.getElementById('title');
@@ -254,59 +412,65 @@
             const span = document.createElement('span');
             span.className = 'letter';
             span.textContent = l;
-            span.style.animationDelay = `${i * 0.1}s`;
+            span.style.animationDelay = `${i * 0.08}s`;
             titleEl.appendChild(span);
         });
 
-        // Base path for images
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-
-        // 12 unique card faces – each will be used twice
-        const faceFiles = [
-            "1000035396.jpg",
-            "1000035397.jpg",
-            "1000035398.jpg",
-            "1000035399.jpg",
-            "1000035400.jpg",
-            "1000035401.jpg",
-            "1000035405.jpg",
-            "1000035406.jpg",
-            "1000035407.jpg",
-            "1000035409.jpg",
-            "1000035411.jpg",
-            "Screenshot_2026-01-20-15-02-24-76_680d03679600f7af0b4c700c6b270fe7.jpg"
+        const assets = [
+            `${path}1000035396.jpg`,
+            `${path}1000035397.jpg`,
+            `${path}1000035398.jpg`,
+            `${path}1000035399.jpg`,
+            `${path}1000035400.jpg`,
+            `${path}1000035401.jpg`,
+            `${path}1000035405.jpg`,
+            `${path}1000035406.jpg`,
+            `${path}1000035407.jpg`,
+            `${path}1000035409.jpg`,
+            `${path}1000035411.jpg`,
+            `${path}1000035415.jpg`
         ];
 
-        // Full image URLs
-        const assets = faceFiles.map(file => path + file);
-
+        let username = '';
         let activeFlipped = [];
         let locked = false;
+        let matchedPairs = 0;
+        const totalPairs = 12;
+
         const board = document.getElementById('game-board');
         const deckEl = document.getElementById('deck');
+        const landing = document.getElementById('landing');
+        const fadeOverlay = document.getElementById('fade-overlay');
+        const endOverlay = document.getElementById('end-overlay');
 
-        // Enter game from landing
-        function enterVoid() {
-            const input = document.getElementById('username-input');
-            if (!input.value.trim()) return;
+        // Enter game
+        function startGame() {
+            username = document.getElementById('username-input').value.trim();
+            if (!username) return;
 
-            document.getElementById('landing').style.opacity = '0';
+            fadeOverlay.style.opacity = '1';
+            document.getElementById('intro-video').style.opacity = '0';
+            landing.style.opacity = '0';
+
             setTimeout(() => {
-                document.getElementById('landing').style.display = 'none';
-                document.getElementById('title').style.opacity = '1';
-                document.getElementById('game-board').style.opacity = '1';
-                document.getElementById('deck').style.opacity = '1';
+                landing.style.display = 'none';
+                fadeOverlay.style.opacity = '0';
+
+                document.querySelector('.header').style.opacity = '1';
+                board.style.opacity = '1';
+                deckEl.style.opacity = '1';
             }, 1800);
         }
 
-        document.getElementById('start-btn').onclick = enterVoid;
-        document.getElementById('username-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                enterVoid();
-            }
-        });
+        document.getElementById('start-btn').onclick = startGame;
+        document.getElementById('username-input').onkeydown = e => {
+            if (e.key === 'Enter') startGame();
+        };
 
-        // Initialize / shuffle game
+        // Shuffle / restart
+        deckEl.onclick = initGame;
+
         function initGame() {
             if (locked) return;
             locked = true;
@@ -314,8 +478,8 @@
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             activeFlipped = [];
+            matchedPairs = 0;
 
-            // 24 cards = 12 pairs
             let gameCards = [...assets, ...assets].sort(() => Math.random() - 0.5);
 
             gameCards.forEach((imgUrl, i) => {
@@ -328,17 +492,15 @@
                 card.dataset.value = imgUrl;
 
                 card.innerHTML = `
-                    <div class="face front" style="background-image: url('${imgUrl}');"></div>
+                    <div class="face front" style="background-image:url('${imgUrl}')"></div>
                     <div class="face back"></div>
                 `;
 
-                // Start at deck
                 const dRect = deckEl.getBoundingClientRect();
                 card.style.top = dRect.top + 'px';
                 card.style.left = dRect.left + 'px';
                 document.body.appendChild(card);
 
-                // Deal animation
                 setTimeout(() => {
                     const sRect = slot.getBoundingClientRect();
                     card.style.top = sRect.top + 'px';
@@ -348,18 +510,14 @@
                 card.onclick = () => flipCard(card);
             });
 
-            setTimeout(() => { locked = false; }, 24 * 60 + 200);
+            setTimeout(() => locked = false, 24 * 60 + 400);
         }
 
         function flipCard(card) {
             if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
-
             card.classList.add('flipped');
             activeFlipped.push(card);
-
-            if (activeFlipped.length === 2) {
-                checkMatch();
-            }
+            if (activeFlipped.length === 2) checkMatch();
         }
 
         function checkMatch() {
@@ -367,11 +525,10 @@
             const [c1, c2] = activeFlipped;
 
             if (c1.dataset.value === c2.dataset.value) {
-                // Match → glow → return to deck
+                matchedPairs++;
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
                     c2.classList.add('matched-glow');
-
                     setTimeout(() => {
                         const dRect = deckEl.getBoundingClientRect();
                         [c1, c2].forEach(c => {
@@ -380,15 +537,15 @@
                             c.style.left = dRect.left + 'px';
                             c.style.transform = 'scale(0.08) rotateY(0deg)';
                             c.style.opacity = '0';
-                            // Remove after animation
-                            setTimeout(() => c.remove(), 1200);
+                            setTimeout(() => c.remove(), 1300);
                         });
                         activeFlipped = [];
                         locked = false;
+
+                        if (matchedPairs === totalPairs) endGame();
                     }, 700);
                 }, 400);
             } else {
-                // No match → flip back
                 setTimeout(() => {
                     c1.classList.remove('flipped');
                     c2.classList.remove('flipped');
@@ -398,8 +555,69 @@
             }
         }
 
-        // Deck click restarts the game
-        deckEl.onclick = initGame;
+        function endGame() {
+            // Surprise entity push (once per session)
+            if (localStorage.getItem('starblood_entity_seen') !== 'true') {
+                localStorage.setItem('starblood_entity_seen', 'true');
+                const delay = Math.random() * 3000 + 2000;
+
+                setTimeout(() => {
+                    const overlay = document.createElement('div');
+                    overlay.id = 'push-overlay';
+                    overlay.style.opacity = '1';
+                    document.body.appendChild(overlay);
+
+                    document.body.classList.add('push-active');
+
+                    const flash = document.getElementById('entity-flash');
+                    flash.style.opacity = '1';
+
+                    const displace = document.querySelector('#push-distort-strong feDisplacementMap');
+                    displace.setAttribute('scale', '180');
+
+                    setTimeout(() => {
+                        flash.style.opacity = '0.95';
+                        setTimeout(() => flash.style.opacity = '0', 350);
+                    }, 250);
+
+                    setTimeout(() => {
+                        let scale = 180;
+                        const settle = setInterval(() => {
+                            scale -= 18;
+                            displace.setAttribute('scale', Math.max(0, scale));
+                            if (scale <= 0) {
+                                clearInterval(settle);
+                                document.body.classList.remove('push-active');
+                                overlay.style.opacity = '0';
+                                setTimeout(() => {
+                                    overlay.remove();
+                                    showVictory();
+                                }, 1200);
+                            }
+                        }, 70);
+                    }, 900);
+                }, delay);
+            } else {
+                showVictory();
+            }
+        }
+
+        function showVictory() {
+            endOverlay.style.display = 'flex';
+            createBloodRain();
+        }
+
+        function createBloodRain() {
+            for (let i = 0; i < 120; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.style.left = Math.random() * 100 + 'vw';
+                drop.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                drop.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(drop);
+                setTimeout(() => drop.remove(), 10000);
+            }
+        }
     </script>
 </body>
 </html>
