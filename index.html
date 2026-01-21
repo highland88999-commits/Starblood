@@ -8,117 +8,189 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff0000;
-            --card-w: 80px; 
+            --card-w: 80px;
             --card-h: 115px;
         }
 
         body {
-            margin: 0; background: #000; color: white;
+            margin: 0;
+            background: #000;
+            color: white;
             font-family: 'Courier New', monospace;
-            display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            height: 100vh;
         }
 
-        /* Background & Distortion */
-        #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.3s ease; }
-        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; filter: contrast(1.2); }
-        .push-active #video-container { filter: url(#push-distort-strong); }
+        #video-container {
+            position: fixed;
+            inset: 0;
+            z-index: -10;
+            transition: filter 0.3s ease;
+        }
+
+        .bg-vid {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.35;
+            filter: contrast(1.2);
+        }
+
+        .push-active #video-container {
+            filter: url(#push-distort-strong);
+        }
 
         #entity-flash {
-            position: fixed; inset: 0; pointer-events: none; z-index: 260;
-            opacity: 0; transition: opacity 0.2s ease;
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 260;
+            opacity: 0;
+            transition: opacity 0.2s ease;
             background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.4) 0%, transparent 70%);
             mix-blend-mode: screen;
         }
 
-        /* Grid & Slots */
         #game-board {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            margin-top: 30px; perspective: 1200px; opacity: 0; transition: opacity 1s;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 30px;
+            perspective: 1200px;
+            opacity: 0;
+            transition: opacity 1s;
         }
-        .slot { 
-            width: var(--card-w); height: var(--card-h); 
-            border: 1px solid rgba(138, 0, 0, 0.2); border-radius: 8px; 
-            position: relative; overflow: hidden;
+
+        .slot {
+            width: var(--card-w);
+            height: var(--card-h);
+            border: 1px solid rgba(138,0,0,0.2);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
         }
 
         .card {
-            width: 100%; height: 100%;
-            position: absolute; top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-                        top 0.8s ease, left 0.8s ease, opacity 0.5s;
-            cursor: pointer; z-index: 10;
+            transition: transform 0.6s cubic-bezier(0.4,0,0.2,1),
+                        top 0.8s ease,
+                        left 0.8s ease,
+                        opacity 0.5s;
+            cursor: pointer;
         }
+
         .card.flipped { transform: rotateY(180deg); }
         .card:active { transform: scale(1.05); }
-        .card.returning { pointer-events: none; transition: all 1s ease-in; }
+
+        .card.returning {
+            pointer-events: none;
+            transition: all 1s ease-in;
+        }
 
         .face {
-            position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden; border-radius: 8px;
-            border: 2px solid var(--blood-dark); 
-            background-size: cover; background-position: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            border: 2px solid var(--blood-dark);
+            background-size: cover;
+            background-position: center;
         }
+
         .front { transform: rotateY(180deg); }
-        .back { 
-            background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1'); 
+        .back {
+            background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
         }
 
-        .matched-glow { box-shadow: 0 0 25px var(--blood-glow), inset 0 0 15px var(--blood-glow) !important; }
+        .matched-glow {
+            box-shadow: 0 0 25px var(--blood-glow), inset 0 0 15px var(--blood-glow) !important;
+        }
 
-        /* Landing */
         #landing {
-            position: fixed; inset: 0; z-index: 300; background: #000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             transition: opacity 1.5s ease-out;
         }
-        .intro-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        
+
+        .intro-vid {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+        }
+
         .landing-content {
-            position: relative; z-index: 10; text-align: center; padding: 40px;
-            background: rgba(0,0,0,0.8); border: 1px solid var(--blood-dark);
-            backdrop-filter: blur(10px); border-radius: 12px;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--blood-dark);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
         }
 
-        #username-input {
-            font-size: 1.2rem; padding: 10px; border: 1px solid var(--blood-dark);
-            background: #110000; color: white; text-align: center; margin-bottom: 20px;
-            width: 220px;
+        .header {
+            margin-top: 20px;
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--blood-glow);
+            text-shadow: 0 0 15px var(--blood-glow);
+            letter-spacing: 5px;
+            opacity: 0;
+            transition: opacity 1s;
         }
 
-        .header { margin-top: 20px; font-size: 2.8rem; font-weight: 900; color: var(--blood-glow); text-shadow: 0 0 15px var(--blood-glow); letter-spacing: 5px; opacity: 0; transition: opacity 1s; }
-
-        .deck-stack { 
-            position: fixed; bottom: 30px; right: 30px; width: 80px; height: 115px;
-            cursor: pointer; opacity: 0; transition: opacity 1s; 
+        .deck-stack {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 115px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 1s;
         }
-        .deck-art { 
-            position: absolute; width: 100%; height: 100%; border-radius: 8px; 
+
+        .deck-art {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
             background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
-            background-size: cover; border: 1px solid var(--blood-dark);
+            background-size: cover;
+            border: 1px solid var(--blood-dark);
         }
 
-        /* Win overlay */
-        #win-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 400;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            color: var(--blood-glow); font-size: 3rem; text-shadow: 0 0 20px currentColor;
-            animation: pulse-glow 2s infinite;
-        }
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
+        @media (max-width: 600px) {
+            :root { --card-w: 70px; --card-h: 100px; }
+            #game-board { gap: 8px; }
+            .deck-stack { width: 70px; height: 100px; }
         }
     </style>
 </head>
 <body>
 
-    <svg width="0" height="0" style="position: absolute;">
+    <svg width="0" height="0" style="position:absolute;">
         <defs>
             <filter id="push-distort-strong">
-                <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G"/>
             </filter>
         </defs>
     </svg>
@@ -136,49 +208,42 @@
             <source src="https://www.dropbox.com/scl/fi/j6x8j8qa9vrcf3th5qv9y/Videoleap_2026_01_20_18_07_56_976.mp4?rlkey=19vjtf6sekunvma6gczjzh7ie&st=alpirwmc&raw=1" type="video/mp4">
         </video>
         <div class="landing-content">
-            <h1 style="color:var(--blood-glow); letter-spacing: 5px;">STARBLOOD</h1>
-            <input id="username-input" type="text" placeholder="ID KEY" maxlength="12">
-            <br>
-            <button style="padding:15px 40px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer;" onclick="enterVoid()">DECRYPT IDENTITY</button>
+            <button style="padding:15px 40px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer; font-size:1.2rem;" onclick="enterVoid()">DECRYPT IDENTITY</button>
         </div>
     </div>
 
     <div class="header" id="title"></div>
+
     <div id="game-board"></div>
 
     <div class="deck-stack" id="deck">
         <div class="deck-art"></div>
     </div>
 
-    <div id="win-overlay">IDENTITY DECRYPTED</div>
-
     <script>
-        // Title
         const titleEl = document.getElementById('title');
         "STARBLOOD".split('').forEach(l => {
             const span = document.createElement('span');
-            span.className = 'letter'; span.textContent = l;
+            span.className = 'letter';
+            span.textContent = l;
             titleEl.appendChild(span);
         });
 
-        // Dropbox raw URLs (10 unique images)
         const faceFiles = [
             "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/4m9q5k6x5n5x5x5x5x5x5/star-4.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/5m9q5k6x5n5x5x5x5x5x5/star-5.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/6k7l8m9n0o1p2q3r4s5t6/star-6.png?rlkey=abc123xyz&raw=1",   // ← replace if you have actual 6–10
-            "https://www.dropbox.com/scl/fi/7u8v9w0x1y2z3a4b5c6d/star-7.png?rlkey=def456uvw&raw=1",
-            "https://www.dropbox.com/scl/fi/8e9f0g1h2i3j4k5l6m7n/star-8.png?rlkey=ghi789rst&raw=1",
-            "https://www.dropbox.com/scl/fi/9o0p1q2r3s4t5u6v7w8x/star-9.png?rlkey=jkl012mno&raw=1",
-            "https://www.dropbox.com/scl/fi/0y1z2a3b4c5d6e7f8g9h/star-10.png?rlkey=pqr345stu&raw=1"
+            "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/4m9q5k6x5n5x5x5x5x5x5/star-4.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+            "https://www.dropbox.com/scl/fi/5m9q5k6x5n5x5x5x5x5x5/star-5.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1"
         ];
 
         let activeFlipped = [];
         let locked = false;
-        let matchedPairs = 0;
-        const totalPairs = faceFiles.length;
 
         const deckEl = document.getElementById('deck');
         deckEl.onclick = () => { if (!locked) initGame(); };
@@ -205,7 +270,6 @@
 
         function initGame() {
             locked = true;
-            matchedPairs = 0;
             const board = document.getElementById('game-board');
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
@@ -254,9 +318,7 @@
         function checkMatch() {
             const [c1, c2] = activeFlipped;
             if (c1.dataset.val === c2.dataset.val) {
-                matchedPairs++;
                 triggerGlitch();
-
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
                     c2.classList.add('matched-glow');
@@ -272,13 +334,6 @@
                         });
                         activeFlipped = [];
                         locked = false;
-
-                        if (matchedPairs === totalPairs) {
-                            setTimeout(() => {
-                                document.getElementById('win-overlay').style.display = 'flex';
-                                triggerGlitch(); // one final big glitch on full win
-                            }, 1000);
-                        }
                     }, 700);
                 }, 400);
             } else {
