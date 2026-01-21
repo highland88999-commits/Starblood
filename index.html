@@ -8,8 +8,8 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #b30000;
-            --card-w: 82px; 
-            --card-h: 118px;
+            --card-w: 80px; 
+            --card-h: 115px;
         }
 
         body {
@@ -19,54 +19,31 @@
             overflow: hidden; height: 100vh;
         }
 
-        /* Distortion Logic */
+        /* Distortion Assets */
         #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.3s ease; }
         .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
         .push-active #video-container { filter: url(#push-distort-strong); }
 
-        #entity-flash { 
-            position: fixed; inset: 0; pointer-events: none; z-index: 260; 
+        #entity-flash {
+            position: fixed; inset: 0; pointer-events: none; z-index: 260;
             opacity: 0; transition: opacity 0.2s ease;
             background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.4) 0%, transparent 70%);
-            mix-blend-mode: screen; 
+            mix-blend-mode: screen;
         }
 
-        /* Landing Page */
-        #landing {
-            position: fixed; inset: 0; z-index: 300; background: #000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 1.8s ease-out;
-        }
-        .intro-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .landing-content {
-            position: relative; z-index: 10; text-align: center; padding: 30px;
-            background: rgba(0,0,0,0.6); border-radius: 16px; backdrop-filter: blur(10px);
-            border: 2px solid var(--blood-dark); box-shadow: 0 0 40px var(--blood-glow);
-        }
-
-        #username-input {
-            font-size: 1.5rem; padding: 12px; border: 2px solid var(--blood-dark);
-            border-radius: 8px; background: rgba(20, 0, 0, 0.5); color: white;
-            text-align: center; margin-bottom: 20px; width: 250px;
-        }
-
-        /* Header Animation */
-        .header { margin-top: 15px; display: flex; gap: 8px; z-index: 100; opacity: 0; transition: opacity 1s; }
-        .letter {
-            font-size: 3rem; font-weight: 900; color: var(--blood-glow);
-            text-shadow: 0 0 15px var(--blood-glow); display: inline-block;
-            animation: bleed 4s infinite ease-in-out;
-        }
-        @keyframes bleed { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.1) translateY(5px); } }
-
-        /* 4x5 Portrait Grid */
+        /* Portrait Grid & Slots */
         #game-board {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            margin-top: 20px; perspective: 1200px;
+            margin-top: 30px; perspective: 1200px;
             opacity: 0; transition: opacity 1s;
         }
-        .slot { width: var(--card-w); height: var(--card-h); border: 1px solid rgba(138, 0, 0, 0.2); border-radius: 8px; }
+        .slot { 
+            width: var(--card-w); height: var(--card-h); 
+            border: 1px solid rgba(138, 0, 0, 0.15); border-radius: 8px; 
+            position: relative; overflow: hidden; /* Prevent overflow as requested */
+        }
 
+        /* Card Mechanics */
         .card {
             width: var(--card-w); height: var(--card-h);
             position: absolute; transform-style: preserve-3d;
@@ -74,22 +51,37 @@
             cursor: pointer; z-index: 10;
         }
         .card.flipped { transform: rotateY(180deg); }
+        .card:active { transform: scale(1.05); } /* Touch feedback */
         .card.returning { z-index: 1000; pointer-events: none; transition: all 1s ease-in; }
 
         .face {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 8px;
-            border: 2px solid var(--blood-dark); background-size: cover; background-position: center;
+            border: 2px solid var(--blood-dark); 
+            background-size: cover; background-position: center; background-repeat: no-repeat;
         }
-        .front { transform: rotateY(180deg); background-color: #050505; }
+        .front { transform: rotateY(180deg); background-color: #000; }
         .back { background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg'); }
-        
+
         .matched-glow { box-shadow: 0 0 25px var(--blood-glow) !important; border-color: #ff0000 !important; }
 
+        /* UI Elements */
+        #landing {
+            position: fixed; inset: 0; z-index: 300; background: #000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 1.5s ease-out;
+        }
+        .intro-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        
+        .header { margin-top: 20px; display: flex; gap: 8px; z-index: 100; opacity: 0; transition: opacity 1s; }
+        .letter { font-size: 2.8rem; font-weight: 900; color: var(--blood-glow); text-shadow: 0 0 10px var(--blood-glow); }
+
         .deck-stack {
-            position: fixed; bottom: 30px; right: 30px; width: 80px; height: 115px;
+            position: fixed; bottom: 30px; right: 30px; width: 75px; height: 110px;
             cursor: pointer; z-index: 200; opacity: 0; transition: opacity 1s;
         }
+        @media (min-width: 601px) { .deck-stack { width: 90px; height: 130px; } }
+
         .deck-art {
             position: absolute; width: 100%; height: 100%; border-radius: 8px;
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
@@ -103,12 +95,12 @@
         <defs>
             <filter id="push-distort-strong">
                 <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="45" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>
 
-    <div id="entity-flash"><div></div></div>
+    <div id="entity-flash"></div>
 
     <div id="video-container">
         <video autoplay muted loop playsinline class="bg-vid">
@@ -117,55 +109,47 @@
     </div>
 
     <div id="landing">
-        <video id="intro-video" autoplay muted loop playsinline class="intro-vid">
+        <video autoplay muted loop playsinline class="intro-vid">
             <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
         </video>
-        <div class="landing-content">
-            <input id="username-input" type="text" placeholder="USER ID" maxlength="15">
-            <br>
-            <button id="start-btn" style="padding:12px 35px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer;" onclick="enterVoid()">ENTER VOID</button>
-        </div>
+        <button style="position:relative; z-index:10; padding:15px 40px; background:rgba(0,0,0,0.6); border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer;" onclick="enterVoid()">DECRYPT IDENTITY</button>
     </div>
 
     <div class="header" id="title"></div>
     <div id="game-board"></div>
 
-    <div class="deck-stack" id="deck" onclick="initGame()">
+    <div class="deck-stack" id="deck">
         <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.4;"></div>
         <div class="deck-art"></div>
     </div>
 
     <script>
         const titleEl = document.getElementById('title');
-        "STARBLOOD".split('').forEach((l, i) => {
+        "STARBLOOD".split('').forEach(l => {
             const span = document.createElement('span');
             span.className = 'letter'; span.textContent = l;
-            span.style.animationDelay = `${i * 0.1}s`;
             titleEl.appendChild(span);
         });
 
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-        
-        // Use 10 unique gems for the 20-card grid
-        const faceFiles = [
-            "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", 
-            "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", 
-            "1000035405.jpg", "1000035406.jpg", "1000035407.jpg", 
-            "1000035409.jpg"
-        ];
+        const faceFiles = ["1000035396.jpg", "1000035397.jpg", "1000035398.jpg", "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", "1000035405.jpg", "1000035406.jpg", "1000035407.jpg", "1000035409.jpg"];
 
         let activeFlipped = [];
         let locked = false;
+        let matchedPairs = 0;
+
+        const deckEl = document.getElementById('deck');
+        deckEl.onclick = () => { if (!locked) initGame(); };
 
         function enterVoid() {
-            if(!document.getElementById('username-input').value) return;
             document.getElementById('landing').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('landing').style.display = 'none';
                 document.getElementById('title').style.opacity = '1';
                 document.getElementById('game-board').style.opacity = '1';
                 document.getElementById('deck').style.opacity = '1';
-            }, 1800);
+                initGame();
+            }, 1500);
         }
 
         function triggerGlitch() {
@@ -174,18 +158,19 @@
             setTimeout(() => {
                 document.body.classList.remove('push-active');
                 document.getElementById('entity-flash').style.opacity = '0';
-            }, 400);
+            }, 350);
         }
 
         function initGame() {
-            if (locked) return;
+            locked = true; 
+            matchedPairs = 0;
             const board = document.getElementById('game-board');
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             
-            let gameCards = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+            let gameDeck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
 
-            gameCards.forEach((file, i) => {
+            gameDeck.forEach((file, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
@@ -193,16 +178,9 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.val = file;
-                
-                // Fixed URL mapping to ensure gem images appear
-                const imgUrl = `${path}${file}`;
-                
-                card.innerHTML = `
-                    <div class="face front" style="background-image: url('${imgUrl}');"></div>
-                    <div class="face back"></div>
-                `;
+                card.innerHTML = `<div class="face front" style="background-image: url('${path + file}');"></div><div class="face back"></div>`;
 
-                const dRect = document.getElementById('deck').getBoundingClientRect();
+                const dRect = deckEl.getBoundingClientRect();
                 card.style.top = dRect.top + 'px';
                 card.style.left = dRect.left + 'px';
                 document.body.appendChild(card);
@@ -211,27 +189,35 @@
                     const sRect = slot.getBoundingClientRect();
                     card.style.top = sRect.top + 'px';
                     card.style.left = sRect.left + 'px';
+                    if(i === gameDeck.length - 1) locked = false;
                 }, i * 60);
 
                 card.onclick = () => {
-                    if (locked || card.classList.contains('flipped')) return;
+                    if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
+                    
                     card.classList.add('flipped');
                     activeFlipped.push(card);
-                    if (activeFlipped.length === 2) checkMatch();
+
+                    if (activeFlipped.length === 2) {
+                        locked = true;
+                        checkMatch();
+                    }
                 };
             });
         }
 
         function checkMatch() {
-            locked = true;
             const [c1, c2] = activeFlipped;
             if (c1.dataset.val === c2.dataset.val) {
-                triggerGlitch(); // Distort screen on match
+                matchedPairs++;
+                triggerGlitch();
+                if(matchedPairs === 10) setTimeout(() => alert("IDENTITY DECRYPTED"), 1000);
+
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
                     c2.classList.add('matched-glow');
                     setTimeout(() => {
-                        const dRect = document.getElementById('deck').getBoundingClientRect();
+                        const dRect = deckEl.getBoundingClientRect();
                         [c1, c2].forEach(c => {
                             c.classList.add('returning');
                             c.style.top = dRect.top + 'px';
