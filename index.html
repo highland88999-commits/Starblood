@@ -25,26 +25,16 @@
             height: 100vh;
         }
 
-        #video-container {
-            position: fixed;
-            inset: 0;
-            z-index: -10;
-        }
+        /* Video Backgrounds */
+        #video-container { position: fixed; inset: 0; z-index: -10; }
+        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
 
-        .bg-vid {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.35;
-        }
-
+        /* Game Board */
         #game-board {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr); /* 5 columns for 20 cards */
             gap: var(--gap);
             margin-top: 40px;
-            max-width: calc(4 * var(--card-w) + 3 * var(--gap));
-            justify-content: center;
             opacity: 0;
             transition: opacity 1s;
         }
@@ -55,15 +45,14 @@
             border: 1px solid rgba(138,0,0,0.4);
             border-radius: 8px;
             background: rgba(10,0,0,0.4);
-            box-shadow: inset 0 0 10px rgba(138,0,0,0.2);
             position: relative;
-            overflow: hidden;
         }
 
+        /* Card Styles */
         .card {
             width: 100%;
             height: 100%;
-            position: relative;
+            position: absolute;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.5s;
             cursor: pointer;
@@ -83,212 +72,166 @@
         }
 
         .front { transform: rotateY(180deg); }
-        .back {
-            background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
+        .back { background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1'); }
+
+        /* Matched Animation */
+        .matched-glow {
+            box-shadow: 0 0 20px var(--blood-glow);
+            z-index: 100;
         }
 
+        /* UI Elements */
         #landing {
-            position: fixed;
-            inset: 0;
-            z-index: 300;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: fixed; inset: 0; z-index: 300;
+            background: #000; display: flex; justify-content: center; align-items: center;
             transition: opacity 1.5s ease-out;
         }
 
-        .intro-vid {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.8;
-        }
-
         .landing-button {
-            padding: 15px 60px;
-            background: transparent;
-            border: 2px solid var(--blood-glow);
-            color: var(--blood-glow);
-            font-size: 1.4rem;
-            cursor: pointer;
-            letter-spacing: 3px;
+            padding: 15px 60px; background: transparent;
+            border: 2px solid var(--blood-glow); color: var(--blood-glow);
+            font-size: 1.4rem; cursor: pointer; letter-spacing: 3px;
+            z-index: 301;
         }
 
         .deck-stack {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 80px;
-            height: 115px;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 1s;
-            z-index: 200;
+            position: fixed; bottom: 20px; right: 20px;
+            width: 80px; height: 115px; cursor: pointer;
+            opacity: 0; transition: opacity 1s; z-index: 200;
         }
 
         .deck-art {
-            width: 100%;
-            height: 100%;
-            border-radius: 8px;
+            width: 100%; height: 100%; border-radius: 8px;
             background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
-            background-size: cover;
-            border: 2px solid var(--blood-dark);
+            background-size: cover; border: 2px solid var(--blood-dark);
             box-shadow: 0 0 15px var(--blood-glow);
         }
     </style>
 </head>
 <body>
 
-    <div id="video-container">
-        <video autoplay muted loop playsinline class="bg-vid">
-            <source src="https://www.dropbox.com/scl/fi/mey5lpbfb1uarcw8rw1ae/2026-01-20-125904299.mp4?rlkey=3utxc2lsk8bfxxfd7axx8g3ta&st=qwllfayh&raw=1" type="video/mp4">
-        </video>
-    </div>
+<div id="video-container">
+    <video autoplay muted loop playsinline class="bg-vid">
+        <source src="https://www.dropbox.com/scl/fi/mey5lpbfb1uarcw8rw1ae/2026-01-20-125904299.mp4?rlkey=3utxc2lsk8bfxxfd7axx8g3ta&st=qwllfayh&raw=1" type="video/mp4">
+    </video>
+</div>
 
-    <div id="landing">
-        <video autoplay muted loop playsinline class="intro-vid">
-            <source src="https://www.dropbox.com/scl/fi/j6x8j8qa9vrcf3th5qv9y/Videoleap_2026_01_20_18_07_56_976.mp4?rlkey=19vjtf6sekunvma6gczjzh7ie&st=alpirwmc&raw=1" type="video/mp4">
-        </video>
-        <button class="landing-button" onclick="enterVoid()">ENTER</button>
-    </div>
+<div id="landing">
+    <button class="landing-button" onclick="enterVoid()">ENTER</button>
+</div>
 
-    <div class="header" id="title"></div>
+<h1 id="title" style="letter-spacing: 10px; color: var(--blood-glow); margin-top: 20px;">STARBLOOD</h1>
 
-    <div id="game-board"></div>
+<div id="game-board"></div>
 
-    <div class="deck-stack" id="deck">
-        <div class="deck-art"></div>
-    </div>
+<div class="deck-stack" id="deck" onclick="initGame()">
+    <div class="deck-art"></div>
+</div>
 
-    <script>
-        // Title animation
-        const titleEl = document.getElementById('title');
-        "STARBLOOD".split('').forEach(l => {
-            const span = document.createElement('span');
-            span.className = 'letter';
-            span.textContent = l;
-            titleEl.appendChild(span);
+<script>
+    const faceFiles = [
+        "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=II",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=III",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=IV",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=V",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=VI",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=VII",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=VIII",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=IX",
+        "https://via.placeholder.com/78x112/500000/ffffff?text=X"
+    ];
+
+    let activeFlipped = [];
+    let locked = false;
+    const board = document.getElementById('game-board');
+    const deckEl = document.getElementById('deck');
+
+    function enterVoid() {
+        document.getElementById('landing').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('landing').style.display = 'none';
+            board.style.opacity = '1';
+            deckEl.style.opacity = '1';
+            initPlaceholders();
+        }, 1500);
+    }
+
+    function initPlaceholders() {
+        board.innerHTML = '';
+        for (let i = 0; i < 20; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            board.appendChild(slot);
+        }
+    }
+
+    function initGame() {
+        if (locked) return;
+        locked = true;
+        
+        // Create 10 pairs from the 10 images
+        let cardsData = [...faceFiles, ...faceFiles];
+        cardsData.sort(() => Math.random() - 0.5);
+
+        board.innerHTML = ''; 
+        cardsData.forEach(url => {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.val = url;
+            card.innerHTML = `
+                <div class="face front" style="background-image:url('${url}')"></div>
+                <div class="face back"></div>
+            `;
+            
+            card.onclick = () => handleCardClick(card);
+            slot.appendChild(card);
+            board.appendChild(slot);
         });
 
-        // 10 unique front images — each used twice
-        const faceFiles = [
-            "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/4m9q5k6x5n5x5x5x5x5x5/star-4.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/5m9q5k6x5n5x5x5x5x5x5/star-5.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/4m9q5k6x5n5x5x5x5x5x5/star-4.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/5m9q5k6x5n5x5x5x5x5x5/star-5.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1"
-        ];
+        setTimeout(() => locked = false, 500);
+    }
 
-        let activeFlipped = [];
-        let locked = false;
+    function handleCardClick(card) {
+        if (locked || card.classList.contains('flipped')) return;
 
-        const deckEl = document.getElementById('deck');
-        deckEl.onclick = () => {
-            if (!locked) initGame();
-        };
+        card.classList.add('flipped');
+        activeFlipped.push(card);
 
-        function enterVoid() {
-            document.getElementById('landing').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('landing').style.display = 'none';
-                document.getElementById('title').style.opacity = '1';
-                document.getElementById('game-board').style.opacity = '1';
-                deckEl.style.opacity = '1';
-                // Show empty placeholders — no cards yet
-                initPlaceholders();
-            }, 1500);
-        }
-
-        function initPlaceholders() {
-            const board = document.getElementById('game-board');
-            board.innerHTML = '';
-            for (let i = 0; i < 20; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'slot';
-                board.appendChild(slot);
-            }
-        }
-
-        function initGame() {
+        if (activeFlipped.length === 2) {
             locked = true;
-            const board = document.getElementById('game-board');
-            board.innerHTML = ''; // clear placeholders
-            document.querySelectorAll('.card').forEach(c => c.remove());
-            activeFlipped = [];
-
-            let pairs = [];
-            for (let i = 0; i < faceFiles.length; i++) {
-                pairs.push({url: faceFiles[i]});
-                pairs.push({url: faceFiles[i]});
-            }
-
-            pairs.sort(() => Math.random() - 0.5);
-
-            pairs.forEach((pair, i) => {
-                const slot = document.createElement('div');
-                slot.className = 'slot';
-                board.appendChild(slot);
-
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.dataset.val = pair.url;
-
-                card.innerHTML = `
-                    <div class="face front" style="background-image:url('${pair.url}')"></div>
-                    <div class="face back"></div>
-                `;
-
-                slot.appendChild(card);
-
-                card.onclick = () => {
-                    if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
-                    card.classList.add('flipped');
-                    activeFlipped.push(card);
-                    if (activeFlipped.length === 2) {
-                        locked = true;
-                        checkMatch();
-                    }
-                };
-            });
-
-            setTimeout(() => locked = false, 800);
+            checkMatch();
         }
+    }
 
-        function checkMatch() {
-            const [c1, c2] = activeFlipped;
-            if (c1.dataset.val === c2.dataset.val) {
-                setTimeout(() => {
-                    c1.classList.add('matched-glow');
-                    c2.classList.add('matched-glow');
-                    setTimeout(() => {
-                        const dRect = deckEl.getBoundingClientRect();
-                        [c1, c2].forEach(c => {
-                            c.classList.add('returning');
-                            c.style.transform = 'scale(0.1) rotateY(0deg)';
-                            c.style.opacity = '0';
-                            setTimeout(() => c.remove(), 1200);
-                        });
-                        activeFlipped = [];
-                        locked = false;
-                    }, 700);
-                }, 400);
-            } else {
-                setTimeout(() => {
-                    c1.classList.remove('flipped');
-                    c2.classList.remove('flipped');
-                    activeFlipped = [];
-                    locked = false;
-                }, 1000);
-            }
+    function checkMatch() {
+        const [c1, c2] = activeFlipped;
+        const isMatch = c1.dataset.val === c2.dataset.val;
+
+        if (isMatch) {
+            c1.classList.add('matched-glow');
+            c2.classList.add('matched-glow');
+            
+            setTimeout(() => {
+                c1.style.transform = 'scale(0) rotateY(180deg)';
+                c2.style.transform = 'scale(0) rotateY(180deg)';
+                c1.style.opacity = '0';
+                c2.style.opacity = '0';
+                activeFlipped = [];
+                locked = false;
+            }, 800);
+        } else {
+            setTimeout(() => {
+                c1.classList.remove('flipped');
+                c2.classList.remove('flipped');
+                activeFlipped = [];
+                locked = false;
+            }, 1000);
         }
-    </script>
+    }
+</script>
 </body>
 </html>
