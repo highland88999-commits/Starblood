@@ -75,11 +75,6 @@
             overflow: hidden;
             background: rgba(10,0,0,0.4);
             box-shadow: inset 0 0 10px rgba(138,0,0,0.2);
-            transition: box-shadow 0.3s;
-        }
-
-        .slot:empty {
-            box-shadow: 0 0 15px var(--blood-glow);
         }
 
         .card {
@@ -157,18 +152,32 @@
             transition: opacity 1s;
         }
 
-        .deck-stack {
+        .deck-container {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 80px;
-            height: 115px;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 1s;
-            border-radius: 8px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 130px;
+            z-index: 200;
+            transition: all 0.4s ease;
+        }
+
+        .deck-container.minimized {
+            transform: translateX(-50%) scale(0.6);
+            opacity: 0.7;
+        }
+
+        .deck-frame {
+            width: 100%;
+            height: 100%;
+            background: rgba(20,0,0,0.6);
             border: 2px solid var(--blood-dark);
-            box-shadow: 0 0 15px var(--blood-glow);
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 20px var(--blood-glow), inset 0 0 15px var(--blood-glow);
+            position: relative;
+            overflow: hidden;
         }
 
         .deck-art {
@@ -176,6 +185,24 @@
             height: 100%;
             background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
             background-size: cover;
+        }
+
+        .deck-tab {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20,0,0,0.7);
+            border: 2px solid var(--blood-dark);
+            border-bottom: none;
+            padding: 4px 16px;
+            border-radius: 8px 8px 0 0;
+            color: var(--blood-glow);
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-align: center;
+            cursor: pointer;
         }
 
         @media (max-width: 600px) {
@@ -188,7 +215,7 @@
                 margin-top: 20px;
                 max-width: calc(4 * var(--card-w) + 3 * var(--gap));
             }
-            .deck-stack {
+            .deck-container {
                 width: 70px;
                 height: 100px;
             }
@@ -219,7 +246,7 @@
             <source src="https://www.dropbox.com/scl/fi/j6x8j8qa9vrcf3th5qv9y/Videoleap_2026_01_20_18_07_56_976.mp4?rlkey=19vjtf6sekunvma6gczjzh7ie&st=alpirwmc&raw=1" type="video/mp4">
         </video>
         <div class="landing-content">
-            <button style="padding:15px 40px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer; font-size:1.2rem;" onclick="enterVoid()">DECRYPT IDENTITY</button>
+            <button style="padding:15px 40px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer; font-size:1.2rem;" onclick="enterVoid()">ENTER</button>
         </div>
     </div>
 
@@ -227,8 +254,16 @@
 
     <div id="game-board"></div>
 
-    <div class="deck-stack" id="deck">
-        <div class="deck-art"></div>
+    <div class="deck-container" id="deck">
+        <div class="deck-tab" id="deck-tab">SHUFFLE</div>
+        <div class="deck-frame">
+            <div class="deck-art"></div>
+        </div>
+    </div>
+
+    <div id="win-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:400; color:var(--blood-glow); font-size:3rem; display:flex; flex-direction:column; align-items:center; justify-content:center; text-shadow:0 0 20px currentColor;">
+        <div>IDENTITY DECRYPTED</div>
+        <button onclick="restartGame()" style="margin-top:20px; padding:12px 30px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer; font-size:1.2rem;">RESTART</button>
     </div>
 
     <script>
@@ -241,7 +276,7 @@
             titleEl.appendChild(span);
         });
 
-        // 10 unique images — each will be used on exactly two cards
+        // 10 unique images — each used twice
         const faceFiles = [
             "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
@@ -257,9 +292,18 @@
 
         let activeFlipped = [];
         let locked = false;
+        let gameActive = false; // prevents shuffle mid-game
 
         const deckEl = document.getElementById('deck');
-        deckEl.onclick = () => { if (!locked) initGame(); };
+        const deckTab = document.getElementById('deck-tab');
+
+        deckEl.onclick = () => {
+            if (!locked && !gameActive) initGame();
+        };
+
+        deckTab.onclick = () => {
+            deckEl.classList.toggle('minimized');
+        };
 
         function enterVoid() {
             document.getElementById('landing').style.opacity = '0';
@@ -268,7 +312,7 @@
                 document.getElementById('title').style.opacity = '1';
                 document.getElementById('game-board').style.opacity = '1';
                 deckEl.style.opacity = '1';
-                // No auto-deal — user clicks deck to shuffle/deal
+                // Empty placeholders visible — shuffle required
             }, 1500);
         }
 
@@ -283,12 +327,12 @@
 
         function initGame() {
             locked = true;
+            gameActive = true;
             const board = document.getElementById('game-board');
-            board.innerHTML = ''; // clear old cards/slots
+            board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             activeFlipped = [];
 
-            // 10 pairs = 20 cards
             let pairs = [];
             for (let i = 0; i < faceFiles.length; i++) {
                 pairs.push({id: i, url: faceFiles[i]});
@@ -297,14 +341,14 @@
 
             pairs.sort(() => Math.random() - 0.5);
 
-            pairs.forEach((pair, i) => {
+            pairs.forEach((pair, index) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.dataset.id = pair.id; // reliable pair identity
+                card.dataset.id = pair.id;
 
                 card.innerHTML = `
                     <div class="face front" style="background-image:url('${pair.url}')"></div>
@@ -354,6 +398,12 @@
                     locked = false;
                 }, 1000);
             }
+        }
+
+        function restartGame() {
+            document.getElementById('win-overlay').style.display = 'none';
+            gameActive = false; // allow shuffle again
+            initGame();
         }
     </script>
 </body>
