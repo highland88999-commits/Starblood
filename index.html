@@ -8,9 +8,9 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #ff3333;
-            --card-h: clamp(80px, 16dvh, 150px);
-            --card-w: calc(var(--card-h) * 0.7);
-            --gap: clamp(6px, 1.2dvh, 12px);
+            --card-h: clamp(75px, 15dvh, 130px);
+            --card-w: calc(var(--card-h) * 0.72);
+            --gap: clamp(5px, 1dvh, 10px);
         }
 
         body {
@@ -19,172 +19,182 @@
             height: 100dvh; width:100vw;
             overflow:hidden; touch-action:none;
             display: flex; flex-direction: column;
+            perspective: 1000px;
         }
 
+        /* --- THE DECK COMMANDER --- */
+        #deck-frame {
+            position:fixed; bottom:20px; right:20px; 
+            width:60px; height:85px; z-index:1000;
+            border:2px solid var(--blood-glow); border-radius:8px;
+            background: rgba(30,0,0,0.6); backdrop-filter: blur(5px);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px var(--blood-dark);
+        }
+
+        #deck-frame::after { content: 'SHUFFLE'; font-size: 8px; color: var(--blood-glow); letter-spacing: 1px; }
+
+        /* --- GAME BOARD --- */
         #game-board {
-            flex: 1;
-            display:grid; 
+            flex: 1; display:grid; 
             grid-template-columns:repeat(4, 1fr);
-            gap:var(--gap);
-            padding: 10px;
-            justify-items: center;
-            align-content: center;
-            z-index: 500;
+            gap:var(--gap); padding: 20px 10px 100px;
+            justify-items: center; align-content: center;
         }
 
-        /* --- THE SLIDER CARD --- */
-        .card {
-            width: var(--card-w);
-            height: var(--card-h);
-            position: relative;
-            overflow: hidden; /* Clips the slider track */
-            border-radius: 8px;
+        @media (orientation: landscape) { #game-board { grid-template-columns:repeat(5, 1fr); } }
+
+        /* --- SLIDER CARD --- */
+        .card-placeholder {
+            width: var(--card-w); height: var(--card-h);
+            position: relative; border-radius: 8px;
+            background: rgba(20,0,0,0.2); border: 1px dashed #300;
+        }
+
+        .card-entity {
+            position: absolute; inset: 0;
+            overflow: hidden; border-radius: 8px;
             border: 1px solid var(--blood-dark);
-            background: #000;
+            background: #000; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s;
+            z-index: 600; pointer-events: auto;
         }
 
         .slider-track {
-            display: flex;
-            width: 200%; /* Two panels side-by-side */
-            height: 100%;
+            display: flex; width: 200%; height: 100%;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            will-change: transform;
         }
 
-        /* Slide state */
-        .card.active .slider-track {
-            transform: translateX(-50%);
-        }
+        .card-entity.active .slider-track { transform: translateX(-50%); }
 
-        .panel {
-            width: 50%;
-            height: 100%;
-            position: relative;
-        }
+        .panel { width: 50%; height: 100%; position: relative; }
+        .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .image-panel { background-size: cover; background-position: center; }
 
-        .video-panel video {
-            width: 100%; height: 100%; object-fit: cover;
-            opacity: 0.8;
+        /* --- SMOKE EFFECT --- */
+        @keyframes smokeToDeck {
+            0% { transform: scale(1); filter: blur(0px) brightness(1); opacity: 1; }
+            40% { transform: scale(1.2) translateY(-10px); filter: blur(4px) brightness(2); }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.1); filter: blur(20px) grayscale(1); opacity: 0; }
         }
+        .smoke-out { animation: smokeToDeck 1.1s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards; }
 
-        .image-panel {
-            background-size: cover;
-            background-position: center;
-            box-shadow: inset 0 0 20px #000;
-        }
-
-        /* --- SMOKE / MATCH EFFECT --- */
-        @keyframes smokeTransfer {
-            0% { transform: scale(1); filter: blur(0px) grayscale(0); opacity: 1; }
-            50% { transform: scale(1.1) translateY(-20px); filter: blur(10px) grayscale(1); opacity: 0.5; }
-            100% { transform: scale(0) translate(var(--tx), var(--ty)); filter: blur(20px); opacity: 0; }
-        }
-
-        .smoke-out {
-            animation: smokeTransfer 1s forwards;
-            pointer-events: none;
-        }
-
-        /* UI Styles */
-        #deck-frame {
-            position:fixed; bottom:15px; right:15px; 
-            width:56px; height:80px;
-            border:1px solid var(--blood-glow); border-radius:8px;
-            background: rgba(20,0,0,0.5);
-        }
-
-        #landing {
-            position:fixed; inset:0; z-index:2000; background:#000;
-            display:flex; align-items:center; justify-content:center;
-        }
     </style>
 </head>
 <body>
 
-<div id="landing">
-    <button style="padding:20px; color:red; border:1px solid red; background:none;" onclick="start()">INITIATE SLIDE</button>
-</div>
-
-<div id="deck-frame"></div>
 <div id="game-board"></div>
+<div id="deck-frame" onclick="commander.shuffleAndDeploy()"></div>
 
 <script>
 const faceFiles = [
-    "./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
-    "./api/asset/Screenshot_2026-01-20-15-06-39-34.jpg"
-]; // Add all 10 here
+    "./api/asset/Screenshot_1.jpg", "./api/asset/Screenshot_2.jpg",
+    "./api/asset/Screenshot_3.jpg", "./api/asset/Screenshot_4.jpg",
+    "./api/asset/Screenshot_5.jpg", "./api/asset/Screenshot_6.jpg",
+    "./api/asset/Screenshot_7.jpg", "./api/asset/Screenshot_8.jpg",
+    "./api/asset/Screenshot_9.jpg", "./api/asset/Screenshot_10.jpg"
+];
 
-let selected = [];
-let locked = false;
+const videoSrc = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4";
 
-function start() {
-    document.getElementById('landing').style.display = 'none';
-    buildBoard();
-}
+const commander = {
+    cards: [],
+    selected: [],
+    locked: true, // Locked until shuffle
 
-function buildBoard() {
-    const board = document.getElementById('game-board');
-    let deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+    init() {
+        const board = document.getElementById('game-board');
+        // Create 20 Placeholders
+        for (let i = 0; i < 20; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'card-placeholder';
+            slot.id = `slot-${i}`;
+            board.appendChild(slot);
+        }
+    },
 
-    deck.forEach(img => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.val = img;
+    shuffleAndDeploy() {
+        if (!this.locked && this.cards.length > 0) return;
+        this.locked = true;
+        
+        // Prepare Data
+        let deckData = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+        const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
 
-        card.innerHTML = `
-            <div class="slider-track">
-                <div class="panel video-panel">
-                    <video autoplay muted loop playsinline>
-                        <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
-                    </video>
-                </div>
-                <div class="panel image-panel" style="background-image:url('${img}')"></div>
-            </div>
-        `;
-
-        card.addEventListener('pointerdown', () => {
-            if (locked || selected.length >= 2 || card.classList.contains('active')) return;
+        deckData.forEach((img, i) => {
+            const card = document.createElement('div');
+            card.className = 'card-entity';
+            card.dataset.val = img;
             
-            card.classList.add('active'); // Slide the video over
-            selected.push(card);
+            card.innerHTML = `
+                <div class="slider-track">
+                    <div class="panel video-panel"><video autoplay muted loop playsinline><source src="${videoSrc}"></video></div>
+                    <div class="panel image-panel" style="background-image:url('${img}')"></div>
+                </div>
+            `;
 
-            if (selected.length === 2) {
-                locked = true;
-                setTimeout(checkMatch, 800);
-            }
+            // Start cards at the deck
+            document.body.appendChild(card);
+            const slot = document.getElementById(`slot-${i}`).getBoundingClientRect();
+            
+            card.style.left = deckRect.left + 'px';
+            card.style.top = deckRect.top + 'px';
+            card.style.width = getComputedStyle(document.documentElement).getPropertyValue('--card-w');
+            card.style.height = getComputedStyle(document.documentElement).getPropertyValue('--card-h');
+            card.style.transform = `scale(0.1)`;
+            card.style.opacity = '0';
+
+            // Instruction Listener
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = `translate(${slot.left - deckRect.left}px, ${slot.top - deckRect.top}px) scale(1)`;
+            }, i * 50);
+
+            card.addEventListener('pointerdown', () => this.handleSelection(card));
+            this.cards.push(card);
         });
 
-        board.appendChild(card);
-    });
-}
+        setTimeout(() => { this.locked = false; }, 2000);
+        document.getElementById('deck-frame').style.pointerEvents = 'none';
+        document.getElementById('deck-frame').style.opacity = '0.3';
+    },
 
-function checkMatch() {
-    const [a, b] = selected;
-    if (a.dataset.val === b.dataset.val) {
-        // Calculate distance to deck for smoke effect
-        const deck = document.getElementById('deck-frame').getBoundingClientRect();
-        [a, b].forEach(card => {
-            const rect = card.getBoundingClientRect();
-            const tx = (deck.left - rect.left) + "px";
-            const ty = (deck.top - rect.top) + "px";
-            card.style.setProperty('--tx', tx);
-            card.style.setProperty('--ty', ty);
-            card.classList.add('smoke-out');
-        });
-        selected = [];
-        locked = false;
-    } else {
-        // No match: Resume video function by sliding back
-        setTimeout(() => {
-            a.classList.remove('active');
-            b.classList.remove('active');
-            selected = [];
-            locked = false;
-        }, 1000);
+    handleSelection(card) {
+        if (this.locked || this.selected.length >= 2 || card.classList.contains('active')) return;
+        
+        card.classList.add('active'); // Slide effect
+        this.selected.push(card);
+
+        if (this.selected.length === 2) {
+            this.locked = true;
+            setTimeout(() => this.checkMatch(), 800);
+        }
+    },
+
+    checkMatch() {
+        const [a, b] = this.selected;
+        if (a.dataset.val === b.dataset.val) {
+            const deck = document.getElementById('deck-frame').getBoundingClientRect();
+            [a, b].forEach(card => {
+                const rect = card.getBoundingClientRect();
+                // Dynamic Smoke Trajectory
+                card.style.setProperty('--tx', (deck.left - rect.left) + 'px');
+                card.style.setProperty('--ty', (deck.top - rect.top) + 'px');
+                card.classList.add('smoke-out');
+            });
+            this.selected = [];
+            this.locked = false;
+        } else {
+            setTimeout(() => {
+                a.classList.remove('active'); // Resume video
+                b.classList.remove('active');
+                this.selected = [];
+                this.locked = false;
+            }, 1000);
+        }
     }
-}
+};
+
+commander.init();
 </script>
 </body>
 </html>
