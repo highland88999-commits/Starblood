@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S T A R B L O O D</title>
+    <title>S T A R B L O O D - FINAL</title>
     <style>
         :root {
             --blood-dark: #8a0000;
@@ -19,10 +19,13 @@
             overflow: hidden; height: 100vh;
         }
 
-        /* Distortion Logic */
-        #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.3s ease; }
-        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
-        .push-active #video-container { filter: url(#push-distort-strong); }
+        /* Restoration of the dark, textured background from your first screenshot */
+        #video-container { 
+            position: fixed; inset: 0; z-index: -10; 
+            background-image: url('https://www.dropbox.com/scl/fi/9m9q5k6x5n5x5x5x5x5x5/star-background.jpg?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1');
+            background-size: cover; background-position: center;
+            opacity: 0.3; filter: grayscale(50%) contrast(150%);
+        }
 
         #entity-flash {
             position: fixed; inset: 0; pointer-events: none; z-index: 260;
@@ -31,16 +34,15 @@
             mix-blend-mode: screen;
         }
 
-        /* Portrait Grid & Slots */
         #game-board {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
             margin-top: 30px; perspective: 1200px;
             opacity: 0; transition: opacity 1s;
         }
+
         .slot { 
             width: var(--card-w); height: var(--card-h); 
-            border: 1px solid rgba(138, 0, 0, 0.15); border-radius: 8px; 
-            position: relative; overflow: hidden;
+            border: 1px solid rgba(138, 0, 0, 0.2); border-radius: 8px; 
         }
 
         .card {
@@ -50,56 +52,48 @@
             cursor: pointer; z-index: 10;
         }
         .card.flipped { transform: rotateY(180deg); }
-        .card:active { transform: scale(1.05); }
-        .card.returning { z-index: 1000; pointer-events: none; transition: all 1s ease-in; }
 
         .face {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 8px;
             border: 2px solid var(--blood-dark); 
-            background-size: cover; background-position: center; background-repeat: no-repeat;
+            background-size: cover; background-position: center;
         }
+
         .front { transform: rotateY(180deg); background-color: #000; }
-        
-        /* Updated Card Back to use Dropbox Star Background */
-        .back { background-image: url('https://www.dropbox.com/scl/fi/9m9q5k6x5n5x5x5x5x5x5/star-background.jpg?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1'); }
+
+        /* The blue/red ornate back is restored here */
+        .back { 
+            background-image: url('https://www.dropbox.com/scl/fi/9m9q5k6x5n5x5x5x5x5x5/star-background.jpg?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1');
+            border-color: #440000;
+        }
 
         .matched-glow { box-shadow: 0 0 25px var(--blood-glow) !important; border-color: #ff0000 !important; }
 
-        /* Landing */
         #landing {
             position: fixed; inset: 0; z-index: 300; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 1.5s ease-out;
         }
-        .intro-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        
+
         .landing-content {
-            position: relative; z-index: 10; text-align: center; padding: 40px;
-            background: rgba(0,0,0,0.7); border-radius: 12px; backdrop-filter: blur(15px);
-            border: 1px solid var(--blood-dark);
+            text-align: center; padding: 40px; border: 1px solid var(--blood-dark);
+            background: rgba(0,0,0,0.9); border-radius: 12px; backdrop-filter: blur(10px);
         }
 
         #username-input {
             font-size: 1.2rem; padding: 10px; border: 1px solid var(--blood-dark);
-            background: #110000; color: white; text-align: center; margin-bottom: 8px;
-            width: 220px;
+            background: #110000; color: white; text-align: center; margin-bottom: 20px; width: 220px;
         }
 
-        .prompt-text {
-            color: #ff3333; font-size: 0.9rem; margin-top: 4px; opacity: 0.9; letter-spacing: 1px;
-        }
-
-        .header { margin-top: 20px; display: flex; gap: 8px; z-index: 100; opacity: 0; transition: opacity 1s; }
+        .header { margin-top: 20px; display: flex; gap: 8px; opacity: 0; transition: opacity 1s; }
         .letter { font-size: 2.8rem; font-weight: 900; color: var(--blood-glow); text-shadow: 0 0 10px var(--blood-glow); }
 
         .deck-stack {
             position: fixed; bottom: 30px; right: 30px; width: 75px; height: 110px;
             cursor: pointer; z-index: 200; opacity: 0; transition: opacity 1s;
         }
-        @media (min-width: 601px) { .deck-stack { width: 90px; height: 130px; } }
 
-        /* Updated Deck Art to match new Card Back */
         .deck-art {
             position: absolute; width: 100%; height: 100%; border-radius: 8px;
             background-image: url('https://www.dropbox.com/scl/fi/9m9q5k6x5n5x5x5x5x5x5/star-background.jpg?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1');
@@ -109,32 +103,15 @@
 </head>
 <body>
 
-    <svg width="0" height="0" style="position: absolute;">
-        <defs>
-            <filter id="push-distort-strong">
-                <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G" />
-            </filter>
-        </defs>
-    </svg>
-
+    <div id="video-container"></div>
     <div id="entity-flash"></div>
 
-    <div id="video-container">
-        <video autoplay muted loop playsinline class="bg-vid">
-            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
-        </video>
-    </div>
-
     <div id="landing">
-        <video autoplay muted loop playsinline class="intro-vid">
-            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
-        </video>
         <div class="landing-content">
+            <h1 style="color:var(--blood-glow); letter-spacing: 5px; margin-bottom: 30px;">STARBLOOD</h1>
             <input id="username-input" type="text" placeholder="ID KEY" maxlength="12">
-            <div class="prompt-text">Pick a username</div>
             <br>
-            <button style="padding:15px 40px; background:rgba(0,0,0,0.6); border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer;" onclick="enterVoid()">DECRYPT IDENTITY</button>
+            <button style="padding:15px 40px; background:transparent; border:2px solid var(--blood-glow); color:var(--blood-glow); cursor:pointer; font-family: 'Courier New';" onclick="enterVoid()">DECRYPT IDENTITY</button>
         </div>
     </div>
 
@@ -147,7 +124,7 @@
     </div>
 
     <script>
-        // Set up Title
+        // Initialize Title
         const titleEl = document.getElementById('title');
         "STARBLOOD".split('').forEach(l => {
             const span = document.createElement('span');
@@ -155,14 +132,8 @@
             titleEl.appendChild(span);
         });
 
-        // Dropbox Asset Map
-        // We define 10 pairs. Even if URLs repeat, we give each pair a unique ID for logic
-        const assets = [
-            "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/4m9q5k6x5n5x5x5x5x5x5/star-4.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-            "https://www.dropbox.com/scl/fi/5m9q5k6x5n5x5x5x5x5x5/star-5.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
+        // The 5 Dropbox Assets
+        const baseImages = [
             "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/3n9q5k6x5n5x5x5x5x5x5/star-3.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
@@ -174,9 +145,6 @@
         let locked = false;
         let matchedPairs = 0;
 
-        const deckEl = document.getElementById('deck');
-        deckEl.onclick = () => { if (!locked) initGame(); };
-
         function enterVoid() {
             document.getElementById('landing').style.opacity = '0';
             setTimeout(() => {
@@ -185,46 +153,37 @@
                 document.getElementById('game-board').style.opacity = '1';
                 document.getElementById('deck').style.opacity = '1';
                 initGame();
-            }, 1500);
-        }
-
-        function triggerGlitch() {
-            document.body.classList.add('push-active');
-            document.getElementById('entity-flash').style.opacity = '1';
-            setTimeout(() => {
-                document.body.classList.remove('push-active');
-                document.getElementById('entity-flash').style.opacity = '0';
-            }, 350);
+            }, 1000);
         }
 
         function initGame() {
-            locked = true; 
-            matchedPairs = 0;
+            locked = true; matchedPairs = 0;
             const board = document.getElementById('game-board');
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
             
-            // Create pairs (Total 20 cards)
+            // Build 10 pairs (20 cards total)
             let gameDeck = [];
-            assets.forEach((url, index) => {
-                // Add two of each to create the match
-                gameDeck.push({url, id: index});
-                gameDeck.push({url, id: index});
-            });
+            // We loop twice to get 10 unique IDs, even if the images repeat
+            for(let i=0; i<10; i++) {
+                const imgUrl = baseImages[i % 5]; // cycles through the 5 stars
+                gameDeck.push({url: imgUrl, id: i}); 
+                gameDeck.push({url: imgUrl, id: i});
+            }
 
             gameDeck.sort(() => Math.random() - 0.5);
 
-            gameDeck.forEach((cardData, i) => {
+            gameDeck.forEach((data, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.dataset.val = cardData.id;
-                card.innerHTML = `<div class="face front" style="background-image: url('${cardData.url}');"></div><div class="face back"></div>`;
+                card.dataset.val = data.id;
+                card.innerHTML = `<div class="face front" style="background-image: url('${data.url}');"></div><div class="face back"></div>`;
 
-                const dRect = deckEl.getBoundingClientRect();
+                const dRect = document.getElementById('deck').getBoundingClientRect();
                 card.style.top = dRect.top + 'px';
                 card.style.left = dRect.left + 'px';
                 document.body.appendChild(card);
@@ -234,18 +193,13 @@
                     card.style.top = sRect.top + 'px';
                     card.style.left = sRect.left + 'px';
                     if(i === gameDeck.length - 1) locked = false;
-                }, i * 60);
+                }, i * 50);
 
                 card.onclick = () => {
                     if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
-                    
                     card.classList.add('flipped');
                     activeFlipped.push(card);
-
-                    if (activeFlipped.length === 2) {
-                        locked = true;
-                        checkMatch();
-                    }
+                    if (activeFlipped.length === 2) { locked = true; checkMatch(); }
                 };
             });
         }
@@ -254,20 +208,14 @@
             const [c1, c2] = activeFlipped;
             if (c1.dataset.val === c2.dataset.val) {
                 matchedPairs++;
-                triggerGlitch();
                 if(matchedPairs === 10) setTimeout(() => alert("IDENTITY DECRYPTED"), 1000);
-
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
                     c2.classList.add('matched-glow');
                     setTimeout(() => {
-                        const dRect = deckEl.getBoundingClientRect();
                         [c1, c2].forEach(c => {
-                            c.classList.add('returning');
-                            c.style.top = dRect.top + 'px';
-                            c.style.left = dRect.left + 'px';
-                            c.style.transform = 'scale(0.1) rotateY(0deg)';
                             c.style.opacity = '0';
+                            c.style.transform = 'scale(0.5) rotateY(180deg)';
                         });
                         activeFlipped = []; locked = false;
                     }, 600);
