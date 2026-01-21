@@ -23,9 +23,11 @@
             display: flex; flex-direction: column;
         }
 
+        /* --- AMBIENT BACKGROUND --- */
         #nexus-bg { position: fixed; inset: 0; z-index: -100; pointer-events: none; }
         #nexus-bg video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
+        /* --- TITLE LAYER --- */
         .title-container { display: flex; justify-content: center; padding: 20px 0; z-index: 100; }
         .blood-letter {
             font-size: clamp(2rem, 8vw, 4rem); color: var(--blood-glow);
@@ -34,6 +36,7 @@
         }
         @keyframes float { 50% { transform: translateY(-10px); } }
 
+        /* --- THE GRID --- */
         #game-board {
             flex: 1; display:grid; grid-template-columns:repeat(4, 1fr);
             gap:var(--gap); padding: 0 10px 100px;
@@ -44,17 +47,12 @@
 
         .card-placeholder {
             width: var(--card-w); height: var(--card-h);
-            background: rgba(40,0,0,0.1); border: 1px dashed rgba(138, 0, 0, 0.3); 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
             border-radius: 8px; position: relative;
-            display: flex; align-items: center; justify-content: center;
         }
 
-        /* --- COORDINATE LABEL --- */
-        .coord-label {
-            position: absolute; font-size: 10px; color: rgba(255,0,0,0.3);
-            bottom: 2px; right: 4px; pointer-events: none;
-        }
-
+        /* --- CARD ENTITY --- */
         .card-entity {
             position: absolute; width: var(--card-w); height: var(--card-h);
             border-radius: 8px; border: 1px solid var(--blood-dark);
@@ -65,10 +63,25 @@
 
         .slider-track { display: flex; width: 200%; height: 100%; transition: transform 0.5s ease; }
         .card-entity.active .slider-track { transform: translateX(-50%); }
-        .panel { width: 50%; height: 100%; }
-        .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .image-panel { background-size: cover; background-position: center; }
 
+        .panel { width: 50%; height: 100%; position: relative; }
+        .video-panel video { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        
+        .image-panel { 
+            background-size: cover; background-position: center; 
+            box-shadow: inset 0 0 30px #000;
+        }
+
+        /* --- TACTICAL ID (IMAGE SIDE ONLY) --- */
+        .asset-id {
+            position: absolute; bottom: 5px; right: 6px;
+            font-size: 9px; font-weight: bold; color: var(--blood-glow);
+            background: rgba(0,0,0,0.7); padding: 2px 5px; border-radius: 2px;
+            border: 1px solid var(--blood-dark); pointer-events: none;
+            letter-spacing: 1px;
+        }
+
+        /* --- DECK / SHUFFLE TRIGGER --- */
         #deck-frame {
             position:fixed; bottom:20px; right:20px; width:60px; height:85px;
             border:2px solid var(--blood-glow); border-radius:8px;
@@ -76,8 +89,9 @@
             box-shadow: 0 0 15px var(--blood-dark);
         }
 
+        /* --- MATCH DISPERSAL (SMOKE) --- */
         .smoke-out { animation: smokeToDeck 1s forwards; pointer-events: none; z-index: 2000 !important; }
-        @keyframes smokeToDeck { 100% { transform: translate(var(--tx), var(--ty)) scale(0); filter: blur(20px); opacity: 0; } }
+        @keyframes smokeToDeck { 100% { transform: translate(var(--tx), var(--ty)) scale(0); filter: blur(25px); opacity: 0; } }
     </style>
 </head>
 <body>
@@ -93,6 +107,9 @@
 <div id="deck-frame" onclick="commander.shuffleAndDeploy()"></div>
 
 <script>
+/** * PRECISE REPO ASSET MAPPING
+ * Paths verified from: highland88999-commits/Starblood/main/api/asset/
+ */
 const faceFiles = [
     "./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg",
     "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
@@ -114,64 +131,71 @@ const commander = {
     locked: false,
 
     init() {
-        // Title Logic
-        const titleContainer = document.getElementById('blood-title');
+        // Floating Letter Initiation
         "STARBLOOD".split('').forEach((char, i) => {
             const span = document.createElement('span');
             span.className = 'blood-letter';
             span.textContent = char;
             span.style.animationDelay = `${i * 0.1}s`;
-            titleContainer.appendChild(span);
+            document.getElementById('blood-title').appendChild(span);
         });
 
-        // Board Logic with Mapping
+        // Placeholder Generation
         const board = document.getElementById('game-board');
-        const cols = window.innerWidth > window.innerHeight ? 5 : 4;
-
         for (let i = 0; i < 20; i++) {
-            const rowLetter = String.fromCharCode(65 + Math.floor(i / cols)); // A, B, C...
-            const colNum = (i % cols) + 1;
-            const coord = `${rowLetter}${colNum}`;
-
             const slot = document.createElement('div');
             slot.className = 'card-placeholder';
-            slot.id = `slot-${coord}`; // ID is now slot-A1, slot-A2...
-            slot.innerHTML = `<span class="coord-label">${coord}</span>`;
+            slot.id = `slot-${i}`;
             board.appendChild(slot);
         }
     },
 
     shuffleAndDeploy() {
-        if (this.cards.length > 0) return;
+        if (this.cards.length > 0) return; // Prevent double shuffle
         this.locked = true;
         
         const deck = document.getElementById('deck-frame');
         const deckRect = deck.getBoundingClientRect();
-        let deckData = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+        
+        // 1. Map assets to IDs (A1-A10) and pair them (Total 20)
+        let assetPool = [];
+        for(let j=0; j<10; j++) {
+            const id = `${String.fromCharCode(65 + Math.floor(j/5))}${ (j%5)+1 }`;
+            const assetData = { img: faceFiles[j], id: id };
+            assetPool.push(assetData, { ...assetData }); // Push two copies
+        }
+        
+        // 2. Fisher-Yates Random Shuffle
+        assetPool.sort(() => Math.random() - 0.5);
 
-        // Get all placeholder IDs in order
-        const slots = Array.from(document.querySelectorAll('.card-placeholder'));
-
-        deckData.forEach((img, i) => {
+        // 3. Deployment Ritual
+        assetPool.forEach((asset, i) => {
             const card = document.createElement('div');
             card.className = 'card-entity';
-            card.dataset.val = img;
-            card.dataset.origin = slots[i].id.replace('slot-', ''); // Store current coord on card
+            card.dataset.val = asset.img;
             
             card.innerHTML = `
                 <div class="slider-track">
-                    <div class="panel video-panel"><video autoplay muted loop playsinline><source src="${videoSrc}"></video></div>
-                    <div class="panel image-panel" style="background-image:url('${img}')"></div>
+                    <div class="panel video-panel">
+                        <video autoplay muted loop playsinline><source src="${videoSrc}"></video>
+                    </div>
+                    <div class="panel image-panel" style="background-image:url('${asset.img}')">
+                        <div class="asset-id">${asset.id}</div>
+                    </div>
                 </div>
             `;
 
             document.body.appendChild(card);
+            
+            // Set spawn coordinates at deck location
             card.style.left = deckRect.left + 'px';
             card.style.top = deckRect.top + 'px';
             card.style.opacity = '0';
             card.style.transform = `scale(0.1)`;
 
-            const slotRect = slots[i].getBoundingClientRect();
+            // Mapping to Slot
+            const slot = document.getElementById(`slot-${i}`);
+            const slotRect = slot.getBoundingClientRect();
 
             setTimeout(() => {
                 card.style.opacity = '1';
@@ -179,12 +203,13 @@ const commander = {
                 const ty = slotRect.top - deckRect.top;
                 card.style.transform = `translate(${tx}px, ${ty}px) scale(1)`;
                 
+                // Final anchor into the placeholder
                 setTimeout(() => {
                     card.style.transition = 'none';
                     card.style.transform = 'none';
                     card.style.left = '0';
                     card.style.top = '0';
-                    slots[i].appendChild(card);
+                    slot.appendChild(card);
                 }, 850);
             }, i * 50);
 
@@ -199,8 +224,7 @@ const commander = {
 
     handleSelection(card) {
         if (this.locked || this.selected.length >= 2 || card.classList.contains('active')) return;
-        console.log(`Unit engaged at coord: ${card.dataset.origin}`);
-        card.classList.add('active');
+        card.classList.add('active'); // Horizontal Slide Reveal
         this.selected.push(card);
         if (this.selected.length === 2) {
             this.locked = true;
@@ -211,24 +235,28 @@ const commander = {
     checkMatch() {
         const [a, b] = this.selected;
         if (a.dataset.val === b.dataset.val) {
-            const deck = document.getElementById('deck-frame').getBoundingClientRect();
+            const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
             [a, b].forEach(card => {
                 const rect = card.getBoundingClientRect();
-                card.style.setProperty('--tx', (deck.left - rect.left) + 'px');
-                card.style.setProperty('--ty', (deck.top - rect.top) + 'px');
+                // Transfer smoke coordinates to CSS
+                card.style.setProperty('--tx', (deckRect.left - rect.left) + 'px');
+                card.style.setProperty('--ty', (deckRect.top - rect.top) + 'px');
                 card.classList.add('smoke-out');
             });
             this.selected = [];
             this.locked = false;
         } else {
             setTimeout(() => {
-                a.classList.remove('active'); b.classList.remove('active');
-                this.selected = []; this.locked = false;
+                a.classList.remove('active'); // Resume video function
+                b.classList.remove('active');
+                this.selected = [];
+                this.locked = false;
             }, 800);
         }
     }
 };
 
+// Initiate engine on load
 window.onload = () => commander.init();
 </script>
 </body>
