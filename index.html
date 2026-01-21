@@ -7,7 +7,7 @@
     <style>
         :root {
             --blood-dark: #8a0000;
-            --blood-glow: #ff0000;
+            --blood-glow: #ff3333;
             --card-w: 78px;
             --card-h: 112px;
             --gap: 14px;
@@ -69,17 +69,23 @@
         .slot {
             width: var(--card-w);
             height: var(--card-h);
-            border: 1px solid rgba(138,0,0,0.2);
+            border: 1px solid rgba(138,0,0,0.4);
             border-radius: 8px;
             position: relative;
             overflow: hidden;
-            background: rgba(10,0,0,0.3);
+            background: rgba(10,0,0,0.4);
+            box-shadow: inset 0 0 10px rgba(138,0,0,0.2);
+            transition: box-shadow 0.3s;
+        }
+
+        .slot:empty {
+            box-shadow: 0 0 15px var(--blood-glow);
         }
 
         .card {
             width: 100%;
             height: 100%;
-            position: relative; /* inside slot, no overflow */
+            position: relative;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4,0,0.2,1),
                         opacity 0.5s;
@@ -160,15 +166,16 @@
             cursor: pointer;
             opacity: 0;
             transition: opacity 1s;
+            border-radius: 8px;
+            border: 2px solid var(--blood-dark);
+            box-shadow: 0 0 15px var(--blood-glow);
         }
 
         .deck-art {
             width: 100%;
             height: 100%;
-            border-radius: 8px;
             background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
             background-size: cover;
-            border: 1px solid var(--blood-dark);
         }
 
         @media (max-width: 600px) {
@@ -234,7 +241,7 @@
             titleEl.appendChild(span);
         });
 
-        // 10 unique images — each used twice
+        // 10 unique images — each will be used on exactly two cards
         const faceFiles = [
             "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
             "https://www.dropbox.com/scl/fi/8m9q5k6x5n5x5x5x5x5x5/star-2.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
@@ -261,7 +268,7 @@
                 document.getElementById('title').style.opacity = '1';
                 document.getElementById('game-board').style.opacity = '1';
                 deckEl.style.opacity = '1';
-                initGame();
+                // No auto-deal — user clicks deck to shuffle/deal
             }, 1500);
         }
 
@@ -277,27 +284,34 @@
         function initGame() {
             locked = true;
             const board = document.getElementById('game-board');
-            board.innerHTML = '';
+            board.innerHTML = ''; // clear old cards/slots
             document.querySelectorAll('.card').forEach(c => c.remove());
             activeFlipped = [];
 
-            let gameDeck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+            // 10 pairs = 20 cards
+            let pairs = [];
+            for (let i = 0; i < faceFiles.length; i++) {
+                pairs.push({id: i, url: faceFiles[i]});
+                pairs.push({id: i, url: faceFiles[i]});
+            }
 
-            gameDeck.forEach((url, i) => {
+            pairs.sort(() => Math.random() - 0.5);
+
+            pairs.forEach((pair, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.dataset.val = url;
+                card.dataset.id = pair.id; // reliable pair identity
 
                 card.innerHTML = `
-                    <div class="face front" style="background-image:url('${url}')"></div>
+                    <div class="face front" style="background-image:url('${pair.url}')"></div>
                     <div class="face back"></div>
                 `;
 
-                slot.appendChild(card); // card inside slot = no overlap
+                slot.appendChild(card);
 
                 card.onclick = () => {
                     if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
@@ -315,7 +329,7 @@
 
         function checkMatch() {
             const [c1, c2] = activeFlipped;
-            if (c1.dataset.val === c2.dataset.val) {
+            if (c1.dataset.id === c2.dataset.id) {
                 triggerGlitch();
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
