@@ -8,8 +8,6 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #b30000;
-            --neon-glow: #ffd700;
-            --glass-bg: rgba(20, 0, 0, 0.35);
             --card-w: 90px;
             --card-h: 130px;
         }
@@ -40,31 +38,25 @@
             opacity: 0.35;
         }
 
-        /* Glowing circular placeholder above title */
-        #glow-video-placeholder {
-            width: 180px;
-            height: 180px;
-            margin: 30px auto 10px;
-            border-radius: 50%;
-            overflow: hidden;
-            box-shadow: 0 0 40px var(--blood-glow), 0 0 80px rgba(179,0,0,0.7), inset 0 0 30px rgba(139,0,0,0.8);
-            animation: pulse-glow 6s infinite ease-in-out;
-            z-index: 90;
+        /* Responsive card size on small screens */
+        @media (max-width: 600px) {
+            :root {
+                --card-w: 70px;
+                --card-h: 100px;
+            }
+            #game-board {
+                gap: 8px;
+            }
+            .deck-stack {
+                width: 70px;
+                height: 100px;
+            }
+            .deck-label {
+                font-size: 9px;
+                bottom: -18px;
+            }
         }
 
-        #glow-video-placeholder video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(1.1) contrast(1.15) saturate(1.4);
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 40px var(--blood-glow), 0 0 80px rgba(179,0,0,0.7); }
-            50% { box-shadow: 0 0 60px var(--blood-glow), 0 0 120px rgba(179,0,0,1); }
-        }
-
-        /* Landing with intro video */
         #landing {
             position: fixed;
             inset: 0;
@@ -104,11 +96,10 @@
             padding: 14px 28px;
             border: 2px solid var(--blood-dark);
             border-radius: 10px;
-            background: var(--glass-bg);
+            background: rgba(20,0,0,0.35);
             color: white;
             text-align: center;
-            box-shadow: inset 0 0 12px var(--blood-glow), 0 0 25px var(--blood-glow), 0 0 45px rgba(139,0,0,0.6);
-            backdrop-filter: blur(6px);
+            box-shadow: inset 0 0 12px var(--blood-glow), 0 0 25px var(--blood-glow);
             margin-bottom: 20px;
             width: 300px;
         }
@@ -122,32 +113,15 @@
             cursor: pointer;
             box-shadow: 0 0 30px var(--blood-glow);
             border-radius: 10px;
-            backdrop-filter: blur(4px);
-        }
-
-        #start-btn:hover { background: rgba(139,0,0,0.3); }
-
-        #fade-overlay {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(to bottom, transparent, rgba(139,0,0,0.7), #000);
-            opacity: 0;
-            pointer-events: none;
-            z-index: 205;
-            transition: opacity 1.5s ease-out;
-        }
-
-        /* Game elements fade in after landing */
-        .header, #game-board, .deck-stack {
-            opacity: 0;
-            transition: opacity 1.2s ease-in 0.6s;
         }
 
         .header {
-            margin-top: 5px;
+            margin-top: 20px;
             display: flex;
             gap: 6px;
             z-index: 100;
+            opacity: 0;
+            transition: opacity 1.2s ease-in;
         }
 
         .letter {
@@ -171,6 +145,8 @@
             max-width: 720px;
             margin-top: 10px;
             perspective: 1400px;
+            opacity: 0;
+            transition: opacity 1.2s ease-in;
         }
 
         .slot {
@@ -189,10 +165,11 @@
             top: 0;
             left: 0;
             transform-style: preserve-3d;
-            transition: transform 0.7s cubic-bezier(0.4,0,0.2,1),
-                        top 0.9s cubic-bezier(0.5,0,0.5,1),
-                        left 0.9s cubic-bezier(0.5,0,0.5,1),
-                        opacity 0.6s;
+            transition: 
+                transform 0.7s cubic-bezier(0.4,0,0.2,1),
+                top 0.9s cubic-bezier(0.5,0,0.5,1),
+                left 0.9s cubic-bezier(0.5,0,0.5,1),
+                opacity 0.6s;
             cursor: pointer;
             z-index: 10;
         }
@@ -234,6 +211,8 @@
             height: 125px;
             cursor: pointer;
             z-index: 200;
+            opacity: 0;
+            transition: opacity 1.2s ease-in;
             border-radius: 12px;
             border: 2px solid var(--blood-dark);
             box-shadow: 0 0 25px var(--blood-glow), inset 0 0 15px var(--blood-glow);
@@ -304,7 +283,7 @@
             50% { transform: translateY(-12px); }
         }
 
-        /* Surprise push effect */
+        /* Surprise push */
         #push-overlay {
             position: fixed;
             inset: 0;
@@ -351,14 +330,6 @@
         </video>
     </div>
 
-    <!-- Glowing circular placeholder -->
-    <div id="glow-video-placeholder">
-        <video autoplay muted loop playsinline>
-            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
-        </video>
-    </div>
-
-    <!-- Landing intro video -->
     <div id="landing">
         <video id="intro-video" autoplay muted playsinline class="intro-vid">
             <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
@@ -390,7 +361,7 @@
         <div id="leaderboard"></div>
     </div>
 
-    <!-- SVG filter for distortion -->
+    <!-- SVG filter -->
     <svg width="0" height="0" style="position:absolute;">
         <defs>
             <filter id="push-distort-strong" x="-50%" y="-50%" width="200%" height="200%">
@@ -406,7 +377,7 @@
     </svg>
 
     <script>
-        // Title animation
+        // Title
         const titleEl = document.getElementById('title');
         "STARBLOOD".split('').forEach((l, i) => {
             const span = document.createElement('span');
@@ -432,7 +403,6 @@
             `${path}1000035415.jpg`
         ];
 
-        let username = '';
         let activeFlipped = [];
         let locked = false;
         let matchedPairs = 0;
@@ -444,10 +414,9 @@
         const fadeOverlay = document.getElementById('fade-overlay');
         const endOverlay = document.getElementById('end-overlay');
 
-        // Enter game
         function startGame() {
-            username = document.getElementById('username-input').value.trim();
-            if (!username) return;
+            const input = document.getElementById('username-input');
+            if (!input.value.trim()) return;
 
             fadeOverlay.style.opacity = '1';
             document.getElementById('intro-video').style.opacity = '0';
@@ -456,7 +425,6 @@
             setTimeout(() => {
                 landing.style.display = 'none';
                 fadeOverlay.style.opacity = '0';
-
                 document.querySelector('.header').style.opacity = '1';
                 board.style.opacity = '1';
                 deckEl.style.opacity = '1';
@@ -468,7 +436,6 @@
             if (e.key === 'Enter') startGame();
         };
 
-        // Shuffle / restart
         deckEl.onclick = initGame;
 
         function initGame() {
@@ -556,7 +523,6 @@
         }
 
         function endGame() {
-            // Surprise entity push (once per session)
             if (localStorage.getItem('starblood_entity_seen') !== 'true') {
                 localStorage.setItem('starblood_entity_seen', 'true');
                 const delay = Math.random() * 3000 + 2000;
@@ -589,10 +555,7 @@
                                 clearInterval(settle);
                                 document.body.classList.remove('push-active');
                                 overlay.style.opacity = '0';
-                                setTimeout(() => {
-                                    overlay.remove();
-                                    showVictory();
-                                }, 1200);
+                                setTimeout(showVictory, 1200);
                             }
                         }, 70);
                     }, 900);
@@ -603,7 +566,7 @@
         }
 
         function showVictory() {
-            endOverlay.style.display = 'flex';
+            document.getElementById('end-overlay').style.display = 'flex';
             createBloodRain();
         }
 
