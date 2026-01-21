@@ -25,14 +25,24 @@
             height: 100vh;
         }
 
-        /* Video Backgrounds */
-        #video-container { position: fixed; inset: 0; z-index: -10; }
-        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
+        /* Distortion Effects */
+        #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.4s ease; }
+        .push-active #video-container { filter: url(#push-distort-strong); }
+        
+        #entity-flash { 
+            position: fixed; inset: 0; pointer-events: none; z-index: 260; opacity: 0; 
+            transition: opacity 0.4s ease-in-out;
+            background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.45) 0%, transparent 70%);
+            mix-blend-mode: screen;
+        }
+
+        .bg-vid, .intro-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
+        .intro-vid { opacity: 0.8; position: absolute; inset: 0; }
 
         /* Game Board */
         #game-board {
             display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5 columns for 20 cards */
+            grid-template-columns: repeat(4, 1fr);
             gap: var(--gap);
             margin-top: 40px;
             opacity: 0;
@@ -48,181 +58,173 @@
             position: relative;
         }
 
-        /* Card Styles */
         .card {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.5s;
+            width: 100%; height: 100%; position: relative;
+            transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.5s;
             cursor: pointer;
         }
-
         .card.flipped { transform: rotateY(180deg); }
 
         .face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 8px;
-            border: 2px solid var(--blood-dark);
-            background-size: cover;
-            background-position: center;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 8px;
+            border: 2px solid var(--blood-dark); background-size: cover; background-position: center;
         }
-
         .front { transform: rotateY(180deg); }
-        .back { background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1'); }
+        .back { background-image: url('./api/asset/Screenshot_2026-01-20-15-02-24-76.jpg'); }
 
-        /* Matched Animation */
-        .matched-glow {
-            box-shadow: 0 0 20px var(--blood-glow);
-            z-index: 100;
-        }
-
-        /* UI Elements */
         #landing {
-            position: fixed; inset: 0; z-index: 300;
-            background: #000; display: flex; justify-content: center; align-items: center;
+            position: fixed; inset: 0; z-index: 300; background: #000;
+            display: flex; justify-content: center; align-items: center;
             transition: opacity 1.5s ease-out;
         }
 
         .landing-button {
-            padding: 15px 60px; background: transparent;
-            border: 2px solid var(--blood-glow); color: var(--blood-glow);
-            font-size: 1.4rem; cursor: pointer; letter-spacing: 3px;
+            padding: 15px 60px; background: transparent; border: 2px solid var(--blood-glow);
+            color: var(--blood-glow); font-size: 1.4rem; cursor: pointer; letter-spacing: 3px;
             z-index: 301;
         }
 
-        .deck-stack {
-            position: fixed; bottom: 20px; right: 20px;
-            width: 80px; height: 115px; cursor: pointer;
-            opacity: 0; transition: opacity 1s; z-index: 200;
+        /* Leaderboard Bloom Frame */
+        #leaderboard-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; z-index: 500;
         }
 
-        .deck-art {
-            width: 100%; height: 100%; border-radius: 8px;
-            background-image: url('https://www.dropbox.com/scl/fi/b2gjmfifuosos2cxqtv59/Screenshot_2026-01-20-15-39-47-64_0b2fce7a16bf2b728d6ffa28c8d60efb.jpg?rlkey=vgoa14t1nhi57plch9oaqoqgx&st=l3sti98l&raw=1');
-            background-size: cover; border: 2px solid var(--blood-dark);
-            box-shadow: 0 0 15px var(--blood-glow);
+        .holoframe {
+            width: 90%; max-width: 500px; background: rgba(40, 0, 0, 0.2);
+            backdrop-filter: blur(15px); border: 1px solid var(--blood-glow);
+            border-radius: 20px; padding: 20px; box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
         }
+
+        .scroll-area { max-height: 300px; overflow-y: auto; margin: 20px 0; }
+        .restart-strip { width: 100%; border-top: 1px solid var(--blood-dark); padding-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
+<svg width="0" height="0" style="position: absolute;">
+    <defs>
+        <filter id="push-distort-strong">
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </defs>
+</svg>
+
+<div id="entity-flash"></div>
+
 <div id="video-container">
     <video autoplay muted loop playsinline class="bg-vid">
-        <source src="https://www.dropbox.com/scl/fi/mey5lpbfb1uarcw8rw1ae/2026-01-20-125904299.mp4?rlkey=3utxc2lsk8bfxxfd7axx8g3ta&st=qwllfayh&raw=1" type="video/mp4">
+        <source src="./media/2026-01-20-125904299.mp4" type="video/mp4">
     </video>
 </div>
 
 <div id="landing">
+    <video autoplay muted loop playsinline class="intro-vid">
+        <source src="./media/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
+    </video>
     <button class="landing-button" onclick="enterVoid()">ENTER</button>
 </div>
 
-<h1 id="title" style="letter-spacing: 10px; color: var(--blood-glow); margin-top: 20px;">STARBLOOD</h1>
-
+<h1 style="color:var(--blood-glow); letter-spacing: 8px; margin-top: 20px;">STARBLOOD</h1>
 <div id="game-board"></div>
 
-<div class="deck-stack" id="deck" onclick="initGame()">
-    <div class="deck-art"></div>
+<div id="leaderboard-overlay">
+    <div class="holoframe">
+        <h2 style="text-align:center; color:var(--blood-glow)">RECORDS</h2>
+        <div class="scroll-area">
+            <table style="width:100%; border-collapse: collapse;">
+                <thead style="color:var(--blood-glow); font-size: 0.7rem;">
+                    <tr><th>#</th><th>NAME</th><th>RECORD</th><th>DATE</th></tr>
+                </thead>
+                <tbody id="leaderboard-body" style="text-align: center;"></tbody>
+            </table>
+        </div>
+        <div class="restart-strip">
+            <button class="landing-button" style="font-size: 1rem;" onclick="location.reload()">RESTART</button>
+        </div>
+    </div>
 </div>
 
 <script>
     const faceFiles = [
-        "https://www.dropbox.com/scl/fi/f2s7vov8p6uyln7z5vjwv/star-1.png?rlkey=pyppfuc9h84eorj8f9ty24s7r&raw=1",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=II",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=III",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=IV",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=V",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=VI",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=VII",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=VIII",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=IX",
-        "https://via.placeholder.com/78x112/500000/ffffff?text=X"
+        "./api/asset/Screenshot_2026-01-20-15-05-56-58.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-06-24-65.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-06-39-34.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-07-31-75.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-09-18-64.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-09-46-94.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-09-59-72.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-10-12-71.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-10-25-20.jpg",
+        "./api/asset/Screenshot_2026-01-20-15-07-08-09.jpg"
     ];
 
     let activeFlipped = [];
     let locked = false;
-    const board = document.getElementById('game-board');
-    const deckEl = document.getElementById('deck');
+    let matches = 0;
+    let startTime;
+
+    function triggerFacePush() {
+        document.body.classList.add('push-active');
+        document.getElementById('entity-flash').style.opacity = '1';
+        setTimeout(() => {
+            document.getElementById('entity-flash').style.opacity = '0.3';
+            setTimeout(() => {
+                document.body.classList.remove('push-active');
+                document.getElementById('entity-flash').style.opacity = '0';
+            }, 600);
+        }, 400);
+    }
 
     function enterVoid() {
         document.getElementById('landing').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('landing').style.display = 'none';
-            board.style.opacity = '1';
-            deckEl.style.opacity = '1';
-            initPlaceholders();
+            document.getElementById('game-board').style.opacity = '1';
+            startTime = Date.now();
+            initGame();
         }, 1500);
     }
 
-    function initPlaceholders() {
-        board.innerHTML = '';
-        for (let i = 0; i < 20; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'slot';
-            board.appendChild(slot);
-        }
-    }
-
     function initGame() {
-        if (locked) return;
-        locked = true;
-        
-        // Create 10 pairs from the 10 images
-        let cardsData = [...faceFiles, ...faceFiles];
-        cardsData.sort(() => Math.random() - 0.5);
-
-        board.innerHTML = ''; 
-        cardsData.forEach(url => {
+        const board = document.getElementById('game-board');
+        let deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
+        board.innerHTML = '';
+        deck.forEach(img => {
             const slot = document.createElement('div');
             slot.className = 'slot';
-            
             const card = document.createElement('div');
             card.className = 'card';
-            card.dataset.val = url;
-            card.innerHTML = `
-                <div class="face front" style="background-image:url('${url}')"></div>
-                <div class="face back"></div>
-            `;
-            
-            card.onclick = () => handleCardClick(card);
+            card.dataset.val = img;
+            card.innerHTML = `<div class="face front" style="background-image:url('${img}')"></div><div class="face back"></div>`;
+            card.onclick = () => {
+                if (locked || card.classList.contains('flipped')) return;
+                card.classList.add('flipped');
+                activeFlipped.push(card);
+                if (activeFlipped.length === 2) {
+                    locked = true;
+                    checkMatch();
+                }
+            };
             slot.appendChild(card);
             board.appendChild(slot);
         });
-
-        setTimeout(() => locked = false, 500);
-    }
-
-    function handleCardClick(card) {
-        if (locked || card.classList.contains('flipped')) return;
-
-        card.classList.add('flipped');
-        activeFlipped.push(card);
-
-        if (activeFlipped.length === 2) {
-            locked = true;
-            checkMatch();
-        }
     }
 
     function checkMatch() {
         const [c1, c2] = activeFlipped;
-        const isMatch = c1.dataset.val === c2.dataset.val;
-
-        if (isMatch) {
-            c1.classList.add('matched-glow');
-            c2.classList.add('matched-glow');
-            
-            setTimeout(() => {
-                c1.style.transform = 'scale(0) rotateY(180deg)';
-                c2.style.transform = 'scale(0) rotateY(180deg)';
-                c1.style.opacity = '0';
-                c2.style.opacity = '0';
-                activeFlipped = [];
-                locked = false;
-            }, 800);
+        if (c1.dataset.val === c2.dataset.val) {
+            matches++;
+            if (matches === 10) {
+                const finalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                triggerFacePush();
+                setTimeout(() => showLeaderboard(finalTime), 1200);
+            }
+            activeFlipped = [];
+            locked = false;
         } else {
             setTimeout(() => {
                 c1.classList.remove('flipped');
@@ -231,6 +233,22 @@
                 locked = false;
             }, 1000);
         }
+    }
+
+    function showLeaderboard(time) {
+        const name = prompt("THE VOID HAS RECORDED YOU. ENTER NAME:") || "ANONYMOUS";
+        const entry = { name, time: parseFloat(time), date: new Date().toLocaleDateString() };
+        
+        let scores = JSON.parse(localStorage.getItem('starblood_records') || '[]');
+        scores.push(entry);
+        scores.sort((a, b) => a.time - b.time);
+        localStorage.setItem('starblood_records', JSON.stringify(scores));
+
+        const body = document.getElementById('leaderboard-body');
+        body.innerHTML = scores.map((s, i) => `
+            <tr><td>${i+1}</td><td>${s.name}</td><td>${s.time}s</td><td>${s.date}</td></tr>
+        `).join('');
+        document.getElementById('leaderboard-overlay').style.display = 'flex';
     }
 </script>
 </body>
