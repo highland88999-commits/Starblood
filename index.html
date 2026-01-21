@@ -27,6 +27,7 @@
             position: fixed; inset: 0; pointer-events: none; z-index: 260; opacity: 0; 
             transition: opacity 0.4s ease-in-out;
             background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.45) 0%, transparent 70%);
+            mix-blend-mode: screen;
         }
 
         .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
@@ -41,7 +42,7 @@
         .card {
             width: var(--card-w); height: var(--card-h);
             position: relative; transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s, top 0.8s, left 0.8s;
             cursor: pointer;
         }
         .card.flipped { transform: rotateY(180deg); }
@@ -52,11 +53,31 @@
             border: 1px solid var(--blood-dark); overflow: hidden;
         }
         
-        /* Front = Image Face | Back = Video Face */
         .front { transform: rotateY(180deg); background-size: cover; background-position: center; }
-        .back-video { width: 100%; height: 100%; object-fit: cover; }
+        .back-video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* Leaderboard / Landing UI */
+        /* Collapsible Holoframe (The Deck) */
+        #deck-frame {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 120px; height: 160px;
+            background: rgba(40, 0, 0, 0.3); backdrop-filter: blur(10px);
+            border: 1px solid var(--blood-glow); border-radius: 10px;
+            overflow: hidden; transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            z-index: 100; box-shadow: 0 0 15px var(--blood-dark);
+        }
+
+        #deck-frame.minimized {
+            width: 60px; height: 60px; border-radius: 50%;
+            bottom: 15px; right: 15px;
+        }
+
+        .deck-vid-bg { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        #deck-count {
+            position: absolute; bottom: 5px; width: 100%; text-align: center;
+            font-size: 10px; color: var(--blood-glow); text-shadow: 0 0 5px #000;
+        }
+
+        /* Landing / Leaderboard */
         #landing, #leaderboard-overlay {
             position: fixed; inset: 0; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 400; background: #000;
@@ -66,7 +87,6 @@
             z-index: 10; padding: 15px 50px; background: transparent; 
             border: 2px solid var(--blood-glow); color: var(--blood-glow);
             font-size: 1.2rem; cursor: pointer; letter-spacing: 5px;
-            box-shadow: 0 0 15px var(--blood-dark);
         }
 
         .holo-frame {
@@ -102,6 +122,13 @@
     <button class="btn-void" onclick="enterVoid()">ENTER VOID</button>
 </div>
 
+<div id="deck-frame">
+    <video autoplay muted loop playsinline class="deck-vid-bg">
+        <source src="./bg/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
+    </video>
+    <span id="deck-count">MATCHES: 0/10</span>
+</div>
+
 <h1 style="color:var(--blood-glow); letter-spacing: 12px; margin: 20px 0 10px 0;">STARBLOOD</h1>
 <div id="game-board"></div>
 
@@ -127,12 +154,11 @@
         "./api/asset/Screenshot_2026-01-20-15-07-08-09.jpg"
     ];
 
-    // PATH TO YOUR CARD BACK VIDEO
     const cardBackVid = "./bg/Videoleap_2026_01_20_18_07_56_976.mp4"; 
-
     let flipped = [];
     let matches = 0;
     let timerStart;
+    let locked = false;
 
     function triggerFacePush() {
         document.body.classList.add('push-active');
@@ -148,6 +174,7 @@
         setTimeout(() => {
             document.getElementById('landing').style.display = 'none';
             document.getElementById('game-board').style.opacity = '1';
+            document.getElementById('deck-frame').classList.add('minimized');
             timerStart = Date.now();
             buildBoard();
         }, 1000);
@@ -156,27 +183,21 @@
     function buildBoard() {
         const board = document.getElementById('game-board');
         const deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
-        
         deck.forEach(img => {
             const card = document.createElement('div');
             card.className = 'card';
             card.dataset.val = img;
-            
-            // Back uses a video element, Front uses a div with background-image
             card.innerHTML = `
                 <div class="face front" style="background-image:url('${img}')"></div>
-                <div class="face back">
-                    <video autoplay muted loop playsinline class="back-video">
-                        <source src="${cardBackVid}" type="video/mp4">
-                    </video>
-                </div>
+                <div class="face back"><video autoplay muted loop playsinline class="back-video"><source src="${cardBackVid}" type="video/mp4"></video></div>
             `;
-            
             card.onclick = () => {
-                if (flipped.length < 2 && !card.classList.contains('flipped')) {
-                    card.classList.add('flipped');
-                    flipped.push(card);
-                    if (flipped.length === 2) checkMatch();
+                if (locked || flipped.length >= 2 || card.classList.contains('flipped')) return;
+                card.classList.add('flipped');
+                flipped.push(card);
+                if (flipped.length === 2) {
+                    locked = true;
+                    checkMatch();
                 }
             };
             board.appendChild(card);
@@ -187,37 +208,53 @@
         const [a, b] = flipped;
         if (a.dataset.val === b.dataset.val) {
             matches++;
+            document.getElementById('deck-count').innerText = `MATCHES: ${matches}/10`;
+            magneticToDeck(a, b);
             flipped = [];
+            locked = false;
             if (matches === 10) {
                 const totalTime = ((Date.now() - timerStart) / 1000).toFixed(2);
-                triggerFacePush();
-                setTimeout(() => finalizeRecord(totalTime), 1000);
+                setTimeout(() => {
+                    triggerFacePush();
+                    setTimeout(() => finalizeRecord(totalTime), 1000);
+                }, 1000);
             }
         } else {
             setTimeout(() => {
                 a.classList.remove('flipped');
                 b.classList.remove('flipped');
                 flipped = [];
+                locked = false;
             }, 1000);
         }
     }
 
+    function magneticToDeck(card1, card2) {
+        const deck = document.getElementById('deck-frame');
+        const deckRect = deck.getBoundingClientRect();
+        [card1, card2].forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = (deckRect.left + deckRect.width/2) - (rect.left + rect.width/2);
+            const y = (deckRect.top + deckRect.height/2) - (rect.top + rect.height/2);
+            card.style.transform = `translate(${x}px, ${y}px) rotateY(180deg) scale(0.1)`;
+            card.style.opacity = "0";
+            card.style.pointerEvents = "none";
+        });
+    }
+
     function finalizeRecord(time) {
-        const name = prompt("RECORD SECURED. ENTER IDENTITY:") || "NAMELESS";
+        const name = prompt("IDENTITY VERIFIED. ENTER NAME:") || "ANONYMOUS";
         const record = { name, time: parseFloat(time), date: new Date().toLocaleDateString() };
-        
         let localData = JSON.parse(localStorage.getItem('star_records') || '[]');
         localData.push(record);
         localData.sort((a,b) => a.time - b.time);
         localStorage.setItem('star_records', JSON.stringify(localData));
 
-        const list = document.getElementById('score-list');
-        list.innerHTML = localData.map((r, i) => `
-            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #300;">
+        document.getElementById('score-list').innerHTML = localData.map((r, i) => `
+            <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #400;">
                 <span>${i+1}. ${r.name}</span> <strong>${r.time}s</strong>
             </div>
         `).join('');
-        
         document.getElementById('leaderboard-overlay').style.display = 'flex';
     }
 </script>
