@@ -8,7 +8,7 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #b30000;
-            --neon-glow: #ffd700; /* golden bloom kept for accents */
+            --neon-glow: #ffd700;
             --glass-bg: rgba(20, 0, 0, 0.35);
             --card-w: 85px;
             --card-h: 120px;
@@ -27,12 +27,16 @@
             position: relative;
         }
 
-        .bg-vid {
+        #video-container {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            object-fit: cover;
             z-index: -10;
+        }
+
+        .bg-vid {
+            width: 100%; height: 100%;
+            object-fit: cover;
             opacity: 0.35;
         }
 
@@ -81,10 +85,7 @@
             background: var(--glass-bg);
             color: #fff;
             text-align: center;
-            box-shadow: 
-                inset 0 0 12px var(--blood-glow),
-                0 0 20px var(--blood-glow),
-                0 0 40px rgba(139, 0, 0, 0.6);
+            box-shadow: inset 0 0 12px var(--blood-glow), 0 0 20px var(--blood-glow), 0 0 40px rgba(139,0,0,0.6);
             backdrop-filter: blur(6px);
             margin-bottom: 20px;
             width: 280px;
@@ -130,11 +131,7 @@
             height: 100%;
             position: absolute;
             transform-style: preserve-3d;
-            transition: 
-                transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-                top 0.9s cubic-bezier(0.5, 0, 0.5, 1),
-                left 0.9s cubic-bezier(0.5, 0, 0.5, 1),
-                opacity 0.6s;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), top 0.9s cubic-bezier(0.5, 0, 0.5, 1), left 0.9s cubic-bezier(0.5, 0, 0.5, 1), opacity 0.6s;
             cursor: pointer;
             z-index: 10;
         }
@@ -154,10 +151,7 @@
             border: 2px solid var(--blood-dark);
             background-size: cover;
             background-position: center;
-            box-shadow: 
-                inset 0 0 15px var(--blood-glow),
-                0 0 20px var(--blood-glow),
-                0 0 35px rgba(139, 0, 0, 0.7);
+            box-shadow: inset 0 0 15px var(--blood-glow), 0 0 20px var(--blood-glow), 0 0 35px rgba(139,0,0,0.7);
             backdrop-filter: blur(3px);
         }
         .front { transform: rotateY(180deg); }
@@ -166,10 +160,7 @@
         }
 
         .matched-glow {
-            box-shadow: 
-                inset 0 0 25px var(--blood-glow),
-                0 0 40px var(--blood-glow),
-                0 0 60px rgba(139, 0, 0, 0.9) !important;
+            box-shadow: inset 0 0 25px var(--blood-glow), 0 0 40px var(--blood-glow), 0 0 60px rgba(139,0,0,0.9) !important;
             transition: box-shadow 0.5s;
         }
 
@@ -255,9 +246,7 @@
             backdrop-filter: blur(12px);
             border: 3px solid var(--blood-dark);
             border-radius: 12px;
-            box-shadow: 
-                0 0 35px var(--blood-glow),
-                inset 0 0 20px var(--blood-glow);
+            box-shadow: 0 0 35px var(--blood-glow), inset 0 0 20px var(--blood-glow);
             max-width: 700px;
         }
         .lb-header .lb-cell {
@@ -287,13 +276,207 @@
             0% { transform: translateY(-120%); }
             100% { transform: translateY(120vh); }
         }
+
+        /* Surprise Push Effect */
+        #push-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 250;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .push-active #video-container {
+            filter: url(#push-distort-strong);
+            transition: filter 0.4s ease-in;
+        }
+
+        #entity-flash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 260;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.4) 0%, transparent 70%);
+            mix-blend-mode: screen;
+        }
+
+        #entity-flash > div {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 320px; height: 420px;
+            transform: translate(-50%, -50%) scale(0.85);
+            background: radial-gradient(ellipse at 50% 40%, #fff 0%, #000 35%, transparent 65%);
+            filter: invert(1) hue-rotate(170deg) brightness(1.3);
+            opacity: 0.75;
+            border-radius: 50%;
+            box-shadow: 0 0 100px #b30000;
+        }
     </style>
 </head>
 <body>
 
-    <!-- (rest of your HTML structure remains the same: video, landing, header, timer, game-board, deck, end-overlay, scripts) -->
+    <div id="video-container">
+        <video autoplay muted loop playsinline class="bg-vid">
+            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/2026-01-20-125904299.mp4" type="video/mp4">
+        </video>
+    </div>
 
-    <!-- Keep your existing <script> block here – no changes needed to logic -->
+    <!-- Surprise Entity Flash -->
+    <div id="entity-flash">
+        <div></div>
+    </div>
 
+    <div id="landing">
+        <input id="username-input" type="text" placeholder="Enter Username" maxlength="20">
+        <button id="start-btn">Enter the Void</button>
+    </div>
+
+    <div class="header" id="title"></div>
+
+    <div id="timer">00:00</div>
+
+    <div id="game-board"></div>
+
+    <div class="deck-stack" id="deck">
+        <div class="deck-art" style="transform: translate(-5px, -5px); opacity: 0.6;"></div>
+        <div class="deck-art"></div>
+        <div class="deck-label">TAP TO SHUFFLE</div>
+    </div>
+
+    <div id="end-overlay">
+        <div id="congrats-message">Starblood Awakens! Victory in the Cosmos!</div>
+        <div id="leaderboard"></div>
+    </div>
+
+    <!-- SVG Filters -->
+    <svg width="0" height="0" style="position:absolute;">
+        <defs>
+            <filter id="push-distort-strong" x="-50%" y="-50%" width="200%" height="200%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.005 0.01" numOctaves="5" seed="42" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+                <feComponentTransfer>
+                    <feFuncR type="linear" slope="1.5"/>
+                    <feFuncG type="linear" slope="1.5"/>
+                    <feFuncB type="linear" slope="1.5"/>
+                </feComponentTransfer>
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+    <script>
+        // Replace with your actual Firebase config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Title animation
+        const header = document.getElementById('title');
+        "STARBLOOD".split('').forEach((l, i) => {
+            const span = document.createElement('span');
+            span.className = 'letter';
+            span.textContent = l;
+            span.style.animationDelay = `${i * 0.08}s`;
+            header.appendChild(span);
+        });
+
+        // Game variables and logic (assets, initGame, flipCard, checkMatch, updateTimer, createBloodRain) remain the same as in your previous version
+
+        // ... paste your existing game script logic here (assets, initGame, flipCard, checkMatch, etc.) ...
+
+        async function endGame() {
+            clearInterval(timerInterval);
+            const time = Math.floor((Date.now() - startTime) / 1000);
+            const date = new Date().toLocaleDateString();
+
+            await db.collection('scores').add({
+                username,
+                time,
+                date,
+                timestamp: firebase.firestore.Timestamp.now()
+            });
+
+            // Surprise only once per session
+            if (localStorage.getItem('starblood_entity_seen') === 'true') {
+                endOverlay.style.display = 'flex';
+                createBloodRain();
+                // load leaderboard here
+                return;
+            }
+            localStorage.setItem('starblood_entity_seen', 'true');
+
+            // Surprise delay 2–5 seconds
+            const surpriseDelay = Math.random() * 3000 + 2000;
+
+            setTimeout(() => {
+                const overlay = document.createElement('div');
+                overlay.id = 'push-overlay';
+                overlay.style.opacity = '1';
+                document.body.appendChild(overlay);
+
+                document.body.classList.add('push-active');
+
+                const entityFlash = document.getElementById('entity-flash');
+                entityFlash.style.opacity = '1';
+
+                // Sudden max distortion
+                const displace = document.querySelector('#push-distort-strong feDisplacementMap');
+                displace.setAttribute('scale', '180');
+
+                // Brief intense flash of entity
+                setTimeout(() => {
+                    entityFlash.style.opacity = '0.95';
+                    setTimeout(() => {
+                        entityFlash.style.opacity = '0';
+                    }, 350);
+                }, 250);
+
+                // Settle after short hold
+                setTimeout(() => {
+                    let scale = 180;
+                    const settleInterval = setInterval(() => {
+                        scale -= 18;
+                        displace.setAttribute('scale', Math.max(0, scale));
+                        if (scale <= 0) {
+                            clearInterval(settleInterval);
+                            document.body.classList.remove('push-active');
+                            overlay.style.opacity = '0';
+                            setTimeout(() => {
+                                overlay.remove();
+                                endOverlay.style.display = 'flex';
+                                createBloodRain();
+                                // load leaderboard here
+                            }, 1200);
+                        }
+                    }, 70);
+                }, 900); // brief peak hold
+            }, surpriseDelay);
+        }
+
+        // Add your remaining functions: initGame, flipCard, checkMatch, updateTimer, createBloodRain, landing button listener, etc.
+        // For example:
+        document.getElementById('start-btn').addEventListener('click', () => {
+            username = document.getElementById('username-input').value.trim();
+            if (username) {
+                landing.style.display = 'none';
+                // enable deck onclick = initGame etc.
+            }
+        });
+
+        // ... rest of your script ...
+    </script>
 </body>
 </html>
