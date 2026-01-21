@@ -8,321 +8,88 @@
         :root {
             --blood-dark: #8a0000;
             --blood-glow: #b30000;
-            --card-w: 90px;
-            --card-h: 130px;
+            --card-w: 80px; 
+            --card-h: 115px;
         }
 
         body {
-            margin: 0;
-            background: #000;
-            color: white;
+            margin: 0; background: #000; color: white;
             font-family: 'Courier New', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow: hidden;
-            height: 100vh;
-            position: relative;
+            display: flex; flex-direction: column; align-items: center;
+            overflow: hidden; height: 100vh;
         }
 
-        #video-container {
-            position: fixed;
-            inset: 0;
-            z-index: -10;
+        /* Distortion Classes */
+        #video-container { position: fixed; inset: 0; z-index: -10; transition: filter 0.3s ease; }
+        .bg-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
+        
+        .push-active #video-container { 
+            filter: url(#push-distort-strong); 
         }
 
-        .bg-vid {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.35;
+        #entity-flash { 
+            position: fixed; inset: 0; pointer-events: none; z-index: 260; 
+            opacity: 0; transition: opacity 0.2s ease;
+            background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.4) 0%, transparent 70%);
+            mix-blend-mode: screen; 
         }
 
-        /* Responsive card size on small screens */
-        @media (max-width: 600px) {
-            :root {
-                --card-w: 70px;
-                --card-h: 100px;
-            }
-            #game-board {
-                gap: 8px;
-            }
-            .deck-stack {
-                width: 70px;
-                height: 100px;
-            }
-            .deck-label {
-                font-size: 9px;
-                bottom: -18px;
-            }
-        }
-
-        #landing {
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 1.8s ease-out;
-        }
-
-        .intro-vid {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 1;
-            transition: opacity 1.8s ease-out;
-        }
-
-        .landing-content {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            padding: 30px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 16px;
-            backdrop-filter: blur(8px);
-            border: 2px solid var(--blood-dark);
-            box-shadow: 0 0 40px var(--blood-glow);
-        }
-
-        #username-input {
-            font-size: 1.6rem;
-            padding: 14px 28px;
-            border: 2px solid var(--blood-dark);
-            border-radius: 10px;
-            background: rgba(20,0,0,0.35);
-            color: white;
-            text-align: center;
-            box-shadow: inset 0 0 12px var(--blood-glow), 0 0 25px var(--blood-glow);
-            margin-bottom: 20px;
-            width: 300px;
-        }
-
-        #start-btn {
-            padding: 14px 50px;
-            background: transparent;
-            border: 2px solid var(--blood-glow);
-            color: var(--blood-glow);
-            font-size: 1.3rem;
-            cursor: pointer;
-            box-shadow: 0 0 30px var(--blood-glow);
-            border-radius: 10px;
-        }
-
-        .header {
-            margin-top: 20px;
-            display: flex;
-            gap: 6px;
-            z-index: 100;
-            opacity: 0;
-            transition: opacity 1.2s ease-in;
-        }
-
-        .letter {
-            font-size: 3.2rem;
-            font-weight: 900;
-            color: var(--blood-glow);
-            text-shadow: 0 0 10px var(--blood-glow);
-            animation: bleed 4s infinite ease-in-out;
-        }
-
-        @keyframes bleed {
-            0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(1.12) translateY(5px); }
-        }
-
+        /* 4x5 Portrait Grid */
         #game-board {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-            width: 90%;
-            max-width: 720px;
-            margin-top: 10px;
-            perspective: 1400px;
-            opacity: 0;
-            transition: opacity 1.2s ease-in;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            margin-top: 30px; perspective: 1200px;
+            opacity: 0; transition: opacity 1s;
         }
-
-        .slot {
-            width: var(--card-w);
-            height: var(--card-h);
-            position: relative;
-            border: 1px solid rgba(139,0,0,0.4);
-            border-radius: 8px;
-            background: rgba(10,0,0,0.3);
-        }
+        .slot { width: var(--card-w); height: var(--card-h); border: 1px solid rgba(138, 0, 0, 0.2); border-radius: 8px; }
 
         .card {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            transform-style: preserve-3d;
-            transition: 
-                transform 0.7s cubic-bezier(0.4,0,0.2,1),
-                top 0.9s cubic-bezier(0.5,0,0.5,1),
-                left 0.9s cubic-bezier(0.5,0,0.5,1),
-                opacity 0.6s;
-            cursor: pointer;
-            z-index: 10;
+            width: var(--card-w); height: var(--card-h);
+            position: absolute; transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), top 0.8s ease, left 0.8s ease, opacity 0.5s;
+            cursor: pointer; z-index: 10;
         }
-
         .card.flipped { transform: rotateY(180deg); }
-
-        .card.returning {
-            pointer-events: none;
-            transition: all 1.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
-        }
+        .card.returning { z-index: 1000; pointer-events: none; transition: all 1s ease-in; }
 
         .face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 8px;
-            border: 2px solid var(--blood-dark);
-            background-size: cover;
-            background-position: center;
-            box-shadow: inset 0 0 15px var(--blood-glow);
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 8px;
+            border: 2px solid var(--blood-dark); background-size: cover; background-position: center;
         }
+        .front { transform: rotateY(180deg); background-color: #080808; }
+        .back { background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg'); }
+        
+        .matched-glow { box-shadow: 0 0 25px var(--blood-glow) !important; border-color: #ff0000 !important; }
 
-        .front { transform: rotateY(180deg); }
-
-        .back {
-            background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
-        }
-
-        .matched-glow {
-            box-shadow: 0 0 35px var(--blood-glow), inset 0 0 20px var(--blood-glow) !important;
+        #landing {
+            position: fixed; inset: 0; z-index: 300; background: #000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 1.5s ease-out;
         }
 
         .deck-stack {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 90px;
-            height: 125px;
-            cursor: pointer;
-            z-index: 200;
-            opacity: 0;
-            transition: opacity 1.2s ease-in;
-            border-radius: 12px;
-            border: 2px solid var(--blood-dark);
-            box-shadow: 0 0 25px var(--blood-glow), inset 0 0 15px var(--blood-glow);
-            backdrop-filter: blur(4px);
+            position: fixed; bottom: 30px; right: 30px; width: 75px; height: 110px;
+            cursor: pointer; z-index: 200; opacity: 0; transition: opacity 1s;
         }
-
         .deck-art {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-            background-size: cover;
+            position: absolute; width: 100%; height: 100%; border-radius: 8px;
             background-image: url('https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/1768948913173.jpg');
-        }
-
-        .deck-label {
-            position: absolute;
-            bottom: -22px;
-            width: 100%;
-            text-align: center;
-            font-size: 10px;
-            color: var(--blood-glow);
-        }
-
-        /* Blood Rain */
-        .rain-drop {
-            position: absolute;
-            width: 4px;
-            height: 25px;
-            background: linear-gradient(to bottom, var(--blood-glow), var(--blood-dark));
-            opacity: 0.9;
-            border-radius: 50% 50% 0 0;
-            box-shadow: 0 0 12px var(--blood-glow);
-            animation: fall linear infinite;
-        }
-
-        @keyframes fall {
-            0% { transform: translateY(-120%); }
-            100% { transform: translateY(120vh); }
-        }
-
-        /* End screen */
-        #end-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.92);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 300;
-        }
-
-        #congrats-message {
-            font-size: 3rem;
-            color: var(--blood-glow);
-            text-shadow: 0 0 20px var(--blood-glow);
-            padding: 20px 40px;
-            border: 3px solid var(--blood-dark);
-            border-radius: 12px;
-            box-shadow: 0 0 40px var(--blood-glow), inset 0 0 25px var(--blood-glow);
-            backdrop-filter: blur(8px);
-            animation: bounceBlood 2s infinite;
-        }
-
-        @keyframes bounceBlood {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-12px); }
-        }
-
-        /* Surprise push */
-        #push-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 250;
-            opacity: 0;
-            transition: opacity 1s ease;
-        }
-
-        .push-active #video-container {
-            filter: url(#push-distort-strong);
-            transition: filter 0.4s ease-in;
-        }
-
-        #entity-flash {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 260;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-            background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.4) 0%, transparent 70%);
-            mix-blend-mode: screen;
-        }
-
-        #entity-flash > div {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 320px; height: 420px;
-            transform: translate(-50%, -50%) scale(0.85);
-            background: radial-gradient(ellipse at 50% 40%, #fff 0%, #000 35%, transparent 65%);
-            filter: invert(1) hue-rotate(170deg) brightness(1.3);
-            opacity: 0.75;
-            border-radius: 50%;
-            box-shadow: 0 0 100px #b30000;
+            background-size: cover; border: 1px solid var(--blood-dark);
         }
     </style>
 </head>
-<body>
+<body class="">
+
+    <svg width="0" height="0" style="position: absolute;">
+        <defs>
+            <filter id="push-distort-strong" x="-50%" y="-50%" width="200%" height="200%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.05 0.1" numOctaves="5" seed="42" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="entity-flash"><div></div></div>
 
     <div id="video-container">
         <video autoplay muted loop playsinline class="bg-vid">
@@ -331,139 +98,77 @@
     </div>
 
     <div id="landing">
-        <video id="intro-video" autoplay muted playsinline class="intro-vid">
-            <source src="https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4" type="video/mp4">
-        </video>
-        <div class="landing-content">
-            <input id="username-input" type="text" placeholder="Enter Username" maxlength="20" autocomplete="off">
-            <button id="start-btn">Enter the Void</button>
-        </div>
+        <button id="start-btn" style="padding: 15px 40px; background: transparent; border: 2px solid var(--blood-glow); color: var(--blood-glow); cursor: pointer;" onclick="enterVoid()">INITIATE SEQUENCE</button>
     </div>
-
-    <div id="fade-overlay"></div>
-
-    <div id="entity-flash">
-        <div></div>
-    </div>
-
-    <div class="header" id="title"></div>
 
     <div id="game-board"></div>
 
-    <div class="deck-stack" id="deck">
-        <div class="deck-art" style="transform: translate(-5px, -5px); opacity: 0.6;"></div>
+    <div class="deck-stack" id="deck" onclick="initGame()">
+        <div class="deck-art" style="transform: translate(-4px, -4px); opacity: 0.4;"></div>
         <div class="deck-art"></div>
-        <div class="deck-label">SHUFFLE</div>
     </div>
-
-    <div id="end-overlay">
-        <div id="congrats-message">Starblood Awakens! Victory in the Cosmos!</div>
-        <div id="leaderboard"></div>
-    </div>
-
-    <!-- SVG filter -->
-    <svg width="0" height="0" style="position:absolute;">
-        <defs>
-            <filter id="push-distort-strong" x="-50%" y="-50%" width="200%" height="200%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.005 0.01" numOctaves="5" seed="42" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
-                <feComponentTransfer>
-                    <feFuncR type="linear" slope="1.5"/>
-                    <feFuncG type="linear" slope="1.5"/>
-                    <feFuncB type="linear" slope="1.5"/>
-                </feComponentTransfer>
-            </filter>
-        </defs>
-    </svg>
 
     <script>
-        // Title
-        const titleEl = document.getElementById('title');
-        "STARBLOOD".split('').forEach((l, i) => {
-            const span = document.createElement('span');
-            span.className = 'letter';
-            span.textContent = l;
-            span.style.animationDelay = `${i * 0.08}s`;
-            titleEl.appendChild(span);
-        });
-
         const path = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Star%20Blood%20Card%20Deck%20Face%20Value/";
-        const assets = [
-            `${path}1000035396.jpg`,
-            `${path}1000035397.jpg`,
-            `${path}1000035398.jpg`,
-            `${path}1000035399.jpg`,
-            `${path}1000035400.jpg`,
-            `${path}1000035401.jpg`,
-            `${path}1000035405.jpg`,
-            `${path}1000035406.jpg`,
-            `${path}1000035407.jpg`,
-            `${path}1000035409.jpg`,
-            `${path}1000035411.jpg`,
-            `${path}1000035415.jpg`
+        const faceFiles = [
+            "1000035396.jpg", "1000035397.jpg", "1000035398.jpg", 
+            "1000035399.jpg", "1000035400.jpg", "1000035401.jpg", 
+            "1000035405.jpg", "1000035406.jpg", "1000035407.jpg", 
+            "1000035409.jpg"
         ];
 
         let activeFlipped = [];
         let locked = false;
-        let matchedPairs = 0;
-        const totalPairs = 12;
 
-        const board = document.getElementById('game-board');
-        const deckEl = document.getElementById('deck');
-        const landing = document.getElementById('landing');
-        const fadeOverlay = document.getElementById('fade-overlay');
-        const endOverlay = document.getElementById('end-overlay');
-
-        function startGame() {
-            const input = document.getElementById('username-input');
-            if (!input.value.trim()) return;
-
-            fadeOverlay.style.opacity = '1';
-            document.getElementById('intro-video').style.opacity = '0';
-            landing.style.opacity = '0';
-
+        function enterVoid() {
+            document.getElementById('landing').style.opacity = '0';
             setTimeout(() => {
-                landing.style.display = 'none';
-                fadeOverlay.style.opacity = '0';
-                document.querySelector('.header').style.opacity = '1';
-                board.style.opacity = '1';
-                deckEl.style.opacity = '1';
-            }, 1800);
+                document.getElementById('landing').style.display = 'none';
+                document.getElementById('game-board').style.opacity = '1';
+                document.getElementById('deck').style.opacity = '1';
+            }, 1500);
         }
 
-        document.getElementById('start-btn').onclick = startGame;
-        document.getElementById('username-input').onkeydown = e => {
-            if (e.key === 'Enter') startGame();
-        };
+        function triggerGlitch() {
+            document.body.classList.add('push-active');
+            document.getElementById('entity-flash').style.opacity = '1';
+            
+            // Randomize the filter noise seed for a different look each time
+            const filterNoise = document.querySelector('feTurbulence');
+            filterNoise.setAttribute('seed', Math.random() * 100);
 
-        deckEl.onclick = initGame;
+            setTimeout(() => {
+                document.body.classList.remove('push-active');
+                document.getElementById('entity-flash').style.opacity = '0';
+            }, 400);
+        }
 
         function initGame() {
             if (locked) return;
-            locked = true;
-
+            const board = document.getElementById('game-board');
             board.innerHTML = '';
             document.querySelectorAll('.card').forEach(c => c.remove());
-            activeFlipped = [];
-            matchedPairs = 0;
+            
+            let gameCards = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
 
-            let gameCards = [...assets, ...assets].sort(() => Math.random() - 0.5);
-
-            gameCards.forEach((imgUrl, i) => {
+            gameCards.forEach((file, i) => {
                 const slot = document.createElement('div');
                 slot.className = 'slot';
                 board.appendChild(slot);
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.dataset.value = imgUrl;
-
+                card.dataset.val = file;
+                
+                // Fix: Ensure standard filenames get the path prefix
+                const imgUrl = file.startsWith('http') ? file : `${path}${file}`;
+                
                 card.innerHTML = `
-                    <div class="face front" style="background-image:url('${imgUrl}')"></div>
+                    <div class="face front" style="background-image: url('${imgUrl}');"></div>
                     <div class="face back"></div>
                 `;
 
-                const dRect = deckEl.getBoundingClientRect();
+                const dRect = document.getElementById('deck').getBoundingClientRect();
                 card.style.top = dRect.top + 'px';
                 card.style.left = dRect.left + 'px';
                 document.body.appendChild(card);
@@ -474,111 +179,43 @@
                     card.style.left = sRect.left + 'px';
                 }, i * 60);
 
-                card.onclick = () => flipCard(card);
+                card.onclick = () => {
+                    if (locked || card.classList.contains('flipped')) return;
+                    card.classList.add('flipped');
+                    activeFlipped.push(card);
+                    if (activeFlipped.length === 2) checkMatch();
+                };
             });
-
-            setTimeout(() => locked = false, 24 * 60 + 400);
-        }
-
-        function flipCard(card) {
-            if (locked || card.classList.contains('flipped') || activeFlipped.includes(card)) return;
-            card.classList.add('flipped');
-            activeFlipped.push(card);
-            if (activeFlipped.length === 2) checkMatch();
         }
 
         function checkMatch() {
             locked = true;
             const [c1, c2] = activeFlipped;
-
-            if (c1.dataset.value === c2.dataset.value) {
-                matchedPairs++;
+            if (c1.dataset.val === c2.dataset.val) {
+                // Trigger the distortion on every successful match
+                triggerGlitch();
+                
                 setTimeout(() => {
                     c1.classList.add('matched-glow');
                     c2.classList.add('matched-glow');
                     setTimeout(() => {
-                        const dRect = deckEl.getBoundingClientRect();
+                        const dRect = document.getElementById('deck').getBoundingClientRect();
                         [c1, c2].forEach(c => {
                             c.classList.add('returning');
                             c.style.top = dRect.top + 'px';
                             c.style.left = dRect.left + 'px';
-                            c.style.transform = 'scale(0.08) rotateY(0deg)';
+                            c.style.transform = 'scale(0.1) rotateY(0deg)';
                             c.style.opacity = '0';
-                            setTimeout(() => c.remove(), 1300);
                         });
-                        activeFlipped = [];
-                        locked = false;
-
-                        if (matchedPairs === totalPairs) endGame();
-                    }, 700);
+                        activeFlipped = []; locked = false;
+                    }, 600);
                 }, 400);
             } else {
                 setTimeout(() => {
                     c1.classList.remove('flipped');
                     c2.classList.remove('flipped');
-                    activeFlipped = [];
-                    locked = false;
+                    activeFlipped = []; locked = false;
                 }, 1000);
-            }
-        }
-
-        function endGame() {
-            if (localStorage.getItem('starblood_entity_seen') !== 'true') {
-                localStorage.setItem('starblood_entity_seen', 'true');
-                const delay = Math.random() * 3000 + 2000;
-
-                setTimeout(() => {
-                    const overlay = document.createElement('div');
-                    overlay.id = 'push-overlay';
-                    overlay.style.opacity = '1';
-                    document.body.appendChild(overlay);
-
-                    document.body.classList.add('push-active');
-
-                    const flash = document.getElementById('entity-flash');
-                    flash.style.opacity = '1';
-
-                    const displace = document.querySelector('#push-distort-strong feDisplacementMap');
-                    displace.setAttribute('scale', '180');
-
-                    setTimeout(() => {
-                        flash.style.opacity = '0.95';
-                        setTimeout(() => flash.style.opacity = '0', 350);
-                    }, 250);
-
-                    setTimeout(() => {
-                        let scale = 180;
-                        const settle = setInterval(() => {
-                            scale -= 18;
-                            displace.setAttribute('scale', Math.max(0, scale));
-                            if (scale <= 0) {
-                                clearInterval(settle);
-                                document.body.classList.remove('push-active');
-                                overlay.style.opacity = '0';
-                                setTimeout(showVictory, 1200);
-                            }
-                        }, 70);
-                    }, 900);
-                }, delay);
-            } else {
-                showVictory();
-            }
-        }
-
-        function showVictory() {
-            document.getElementById('end-overlay').style.display = 'flex';
-            createBloodRain();
-        }
-
-        function createBloodRain() {
-            for (let i = 0; i < 120; i++) {
-                const drop = document.createElement('div');
-                drop.className = 'rain-drop';
-                drop.style.left = Math.random() * 100 + 'vw';
-                drop.style.animationDuration = (Math.random() * 2 + 1) + 's';
-                drop.style.animationDelay = Math.random() * 3 + 's';
-                document.body.appendChild(drop);
-                setTimeout(() => drop.remove(), 10000);
             }
         }
     </script>
