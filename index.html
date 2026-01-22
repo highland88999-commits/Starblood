@@ -123,7 +123,7 @@
         <button onclick="app.reset()" style="background:transparent; color:var(--blood-glow); border:1px solid var(--blood-glow); padding:10px 30px; cursor:pointer; margin-top:20px; font-size:1.1rem;">RESTART</button>
     </div>
 
-    <!-- Easter Egg: Rune Codex -->
+    <!-- Easter Egg: Rune Codex Overlay -->
     <div id="rune-codex">
         <button id="codex-close" onclick="closeCodex()">×</button>
         <h1 style="color: var(--blood-glow); margin-bottom: 30px; letter-spacing: 8px;">RUNE CODEX</h1>
@@ -131,7 +131,7 @@
     </div>
 
     <script>
-        // 10 Elder Futhark runes + short meanings (sourced from traditional interpretations)
+        // 10 Elder Futhark runes + short meanings
         const runesData = [
             { rune: 'ᚠ', name: 'Fehu', meaning: 'Wealth, abundance, success, prosperity, new beginnings' },
             { rune: 'ᚢ', name: 'Uruz', meaning: 'Strength, vitality, health, endurance, raw power' },
@@ -155,9 +155,117 @@
                 this.setupEasterEgg();
                 this.populateCodex();
             },
-            // ... (rest of initBoard, deploy, reveal, checkMatch, showWinScreen, save/display/loadLeaderboard, reset functions remain the same as previous fade-reveal version)
-            // (Omitted for brevity — copy from your last working fade-reveal code)
-
+            initBoard() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+                for (let i = 0; i < 20; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'card-placeholder';
+                    slot.id = `slot-${i}`;
+                    board.appendChild(slot);
+                }
+            },
+            deploy() {
+                if (document.querySelector('.card-entity')) return;
+                this.flips = 0; this.matches = 0; this.selected = [];
+                let deckData = [];
+                runesData.forEach(r => deckData.push(r.rune, r.rune));
+                deckData.sort(() => Math.random() - 0.5);
+                const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
+                deckData.forEach((rune, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'card-entity';
+                    card.dataset.val = rune;
+                    card.innerHTML = `
+                        <div class="card-layer video-layer">
+                            <video autoplay muted loop playsinline>
+                                <source src="${cardVideo}">
+                            </video>
+                        </div>
+                        <div class="card-layer rune-layer" data-rune="${rune}"></div>
+                    `;
+                    card.style.left = deckRect.left + 'px';
+                    card.style.top = deckRect.top + 'px';
+                    card.style.transform = 'scale(0.3)';
+                    document.body.appendChild(card);
+                    const slot = document.getElementById(`slot-${i}`);
+                    const slotRect = slot.getBoundingClientRect();
+                    setTimeout(() => {
+                        card.style.left = slotRect.left + 'px';
+                        card.style.top = slotRect.top + 'px';
+                        card.style.transform = 'scale(1)';
+                        setTimeout(() => {
+                            card.style.position = 'relative';
+                            card.style.left = '0';
+                            card.style.top = '0';
+                            slot.appendChild(card);
+                            card.onclick = () => this.reveal(card);
+                        }, 700);
+                    }, i * 40);
+                });
+            },
+            reveal(card) {
+                if (this.selected.length >= 2 || card.classList.contains('revealed') || card.classList.contains('matched')) return;
+                card.classList.add('revealed');
+                this.selected.push(card);
+                this.flips++;
+                if (this.selected.length === 2) setTimeout(() => this.checkMatch(), 900);
+            },
+            checkMatch() {
+                const [a, b] = this.selected;
+                if (a.dataset.val === b.dataset.val) {
+                    a.classList.add('matched');
+                    b.classList.add('matched');
+                    setTimeout(() => {
+                        a.style.visibility = 'hidden';
+                        b.style.visibility = 'hidden';
+                    }, 1000);
+                    this.matches++;
+                    if (this.matches === 10) this.showWinScreen();
+                } else {
+                    setTimeout(() => {
+                        a.classList.remove('revealed');
+                        b.classList.remove('revealed');
+                    }, 1200);
+                }
+                this.selected = [];
+            },
+            showWinScreen() {
+                const username = prompt('Enter your username for the leaderboard:') || 'Anonymous';
+                const date = new Date().toLocaleDateString();
+                this.saveToLeaderboard(username, this.flips, date);
+                this.displayLeaderboard();
+                const ws = document.getElementById('win-screen');
+                ws.style.display = 'flex';
+                setTimeout(() => ws.classList.add('show'), 50);
+            },
+            saveToLeaderboard(username, flips, date) {
+                let lb = JSON.parse(localStorage.getItem('starbloodLB')) || [];
+                lb.push({ username, flips, date });
+                lb.sort((a,b) => a.flips - b.flips);
+                if (lb.length > 10) lb.length = 10;
+                localStorage.setItem('starbloodLB', JSON.stringify(lb));
+            },
+            displayLeaderboard() {
+                const body = document.getElementById('leaderboard-body');
+                body.innerHTML = '';
+                const lb = JSON.parse(localStorage.getItem('starbloodLB')) || [];
+                lb.forEach((e, i) => {
+                    body.innerHTML += `<tr><td>${i+1}</td><td>${e.username}</td><td>${e.flips}</td><td>${e.date}</td></tr>`;
+                });
+            },
+            loadLeaderboard() {
+                this.displayLeaderboard();
+            },
+            reset() {
+                const ws = document.getElementById('win-screen');
+                ws.classList.remove('show');
+                setTimeout(() => {
+                    ws.style.display = 'none';
+                    this.initBoard();
+                    this.deploy();
+                }, 1200);
+            },
             // Easter Egg: Triple-click on "Leaderboard" title
             setupEasterEgg() {
                 const title = document.getElementById('leaderboard-title');
