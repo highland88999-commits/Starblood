@@ -11,125 +11,60 @@
             --card-h: clamp(90px, 18dvh, 150px);
             --card-w: calc(var(--card-h) * 0.72);
         }
-        body {
-            background: #000;
-            color: white;
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            overflow: hidden;
-            height: 100dvh;
+        body { 
+            background: #000; color: white; font-family: 'Courier New', monospace; 
+            margin: 0; overflow: hidden; height: 100dvh; 
         }
-        #nexus-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            opacity: 0.4;
-            pointer-events: none;
+        #nexus-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.4; pointer-events: none; }
+        #nexus-bg video { width: 100%; height: 100%; object-fit: cover; }
+        #main-ui { display: flex; flex-direction: column; height: 100vh; }
+        .title { text-align: center; color: var(--blood-glow); font-size: 2rem; padding: 20px; letter-spacing: 12px; }
+        #game-board { 
+            flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; 
+            padding: 20px; justify-items: center; align-content: center; perspective: 1000px;
         }
-        #nexus-bg video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        #main-ui {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        .title {
-            text-align: center;
-            color: var(--blood-glow);
-            font-size: 2rem;
-            padding: 20px;
-            letter-spacing: 12px;
-        }
-        #game-board {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            padding: 20px;
-            justify-items: center;
-            align-content: center;
-            perspective: 1000px;
-        }
-        .card-placeholder {
-            width: var(--card-w);
-            height: var(--card-h);
-            background: rgba(255,255,255,0.03);
-            border-radius: 6px;
-            position: relative;
-        }
-        .card-entity {
-            position: fixed; /* Changed to fixed for smooth initial fly-in */
-            width: var(--card-w);
-            height: var(--card-h);
-            transform-style: preserve-3d;
-            z-index: 1000;
-            cursor: pointer;
+        .card-placeholder { width: var(--card-w); height: var(--card-h); background: rgba(255,255,255,0.03); border-radius: 6px; position: relative; }
+        .card-entity { 
+            position: fixed; width: var(--card-w); height: var(--card-h); 
+            transform-style: preserve-3d; z-index: 1000; cursor: pointer; transition: all 0.7s cubic-bezier(0.25,1,0.5,1);
         }
         .card-inner {
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 6px;
-            border: 1px solid rgba(138, 0, 0, 0.6);
-            background: #050505;
+            width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+            border-radius: 6px; border: 1px solid rgba(138,0,0,0.6); background: #050505;
         }
-        .card-entity.active .card-inner {
-            transform: rotateY(180deg);
-        }
+        .card-entity.active .card-inner { transform: rotateY(180deg); }
         .back, .front {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 6px;
-            overflow: hidden;
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 6px; overflow: hidden;
         }
         .back { transform: rotateY(0deg); }
         .front { 
-            transform: rotateY(180deg); 
-            background-size: cover;
-            background-position: center;
+            transform: rotateY(180deg); background-size: cover; background-position: center;
         }
-        .back video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.6;
+        .front::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), 
+                        linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+            background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
-        .matched {
-            animation: fadeBack 0.8s forwards;
-            pointer-events: none;
+        .back video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .matched { animation: fadeBack 0.8s forwards; pointer-events: none; }
+        @keyframes fadeBack { to { opacity: 0; transform: scale(0.5) translateZ(-500px); } }
+        #deck-frame { 
+            position: fixed; bottom: 30px; right: 30px; width: 55px; height: 75px; 
+            border: 2px solid var(--blood-glow); border-radius: 4px; 
+            background: rgba(138,0,0,0.2); z-index: 2000; cursor: pointer; 
+            box-shadow: 0 0 15px var(--blood-dark); transition: all 0.3s;
         }
-        @keyframes fadeBack {
-            to { opacity: 0; transform: scale(0.5) translateZ(-500px); }
-        }
-        #deck-frame {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 55px;
-            height: 75px;
-            border: 2px solid var(--blood-glow);
-            border-radius: 4px;
-            background: rgba(138, 0, 0, 0.2);
-            z-index: 2000;
-            cursor: pointer;
-            box-shadow: 0 0 15px var(--blood-dark);
-        }
+        #deck-frame:hover { box-shadow: 0 0 25px var(--blood-glow); transform: scale(1.08); }
         #win-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 3000;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; transition: opacity 1.2s;
         }
+        #win-screen.show { opacity: 1; }
+        #leaderboard { margin: 20px 0; color: white; }
+        #leaderboard table { border-collapse: collapse; width: 80%; max-width: 600px; }
+        #leaderboard th, #leaderboard td { border: 1px solid var(--blood-glow); padding: 8px; text-align: left; }
+        #leaderboard th { background: var(--blood-dark); }
     </style>
 </head>
 <body>
@@ -147,17 +82,18 @@
 
     <div id="win-screen">
         <h1 style="color: var(--blood-glow); font-size: 3rem; letter-spacing: 10px;">SYNC COMPLETE</h1>
+        <p style="letter-spacing: 5px;">NEURAL LINK TERMINATED</p>
         <div id="leaderboard">
-            <table id="leaderboard-table" style="border: 1px solid var(--blood-glow); color: white; width: 300px; text-align: center;">
-                <thead><tr><th>User</th><th>Flips</th></tr></thead>
+            <h2>Leaderboard</h2>
+            <table>
+                <thead><tr><th>#</th><th>Username</th><th>Flips</th><th>Date</th></tr></thead>
                 <tbody id="leaderboard-body"></tbody>
             </table>
         </div>
-        <button onclick="app.reset()" style="margin-top:20px; background:none; border:1px solid red; color:red; padding:10px; cursor:pointer;">RESTART</button>
+        <button onclick="app.reset()" style="background:transparent; color:var(--blood-glow); border:1px solid var(--blood-glow); padding:10px 30px; cursor:pointer; margin-top:20px; font-size:1.1rem;">RESTART</button>
     </div>
 
     <script>
-        // Updated paths to match your /public/images/ folder
         const faceFiles = [
             "/images/Screenshot_2026-01-20-15-02-24-76.jpg",
             "/images/Screenshot_2026-01-20-15-05-56-58.jpg",
@@ -170,20 +106,18 @@
             "/images/Screenshot_2026-01-20-15-10-12-71.jpg",
             "/images/Screenshot_2026-01-20-15-10-25-20.jpg"
         ];
-
         const cardVideo = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4";
 
         const app = {
-            selected: [],
-            matches: 0,
-            flips: 0,
+            selected: [], matches: 0, flips: 0,
             init() {
                 this.initBoard();
+                this.loadLeaderboard();
             },
             initBoard() {
                 const board = document.getElementById('game-board');
                 board.innerHTML = '';
-                for(let i=0; i<20; i++) {
+                for (let i = 0; i < 20; i++) {
                     const slot = document.createElement('div');
                     slot.className = 'card-placeholder';
                     slot.id = `slot-${i}`;
@@ -192,42 +126,33 @@
             },
             deploy() {
                 if (document.querySelector('.card-entity')) return;
-                
+                this.flips = 0; this.matches = 0; this.selected = [];
                 const deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
                 const deckRect = document.getElementById('deck-frame').getBoundingClientRect();
-
                 deck.forEach((path, i) => {
                     const card = document.createElement('div');
                     card.className = 'card-entity';
                     card.dataset.val = path;
-                    
                     card.innerHTML = `
                         <div class="card-inner">
                             <div class="back"><video autoplay muted loop playsinline><source src="${cardVideo}"></video></div>
                             <div class="front" style="background-image:url('${path}')"></div>
                         </div>
                     `;
-
-                    // Start at deck
                     card.style.left = deckRect.left + 'px';
                     card.style.top = deckRect.top + 'px';
-                    card.style.transform = "scale(0.3)";
+                    card.style.transform = 'scale(0.3)';
                     document.body.appendChild(card);
-
                     const slot = document.getElementById(`slot-${i}`);
                     const slotRect = slot.getBoundingClientRect();
-
-                    // Animate to slot
                     setTimeout(() => {
-                        card.style.transition = "all 0.7s cubic-bezier(0.25, 1, 0.5, 1)";
                         card.style.left = slotRect.left + 'px';
                         card.style.top = slotRect.top + 'px';
-                        card.style.transform = "scale(1)";
-                        
+                        card.style.transform = 'scale(1)';
                         setTimeout(() => {
-                            card.style.position = "relative";
-                            card.style.left = "0";
-                            card.style.top = "0";
+                            card.style.position = 'relative';
+                            card.style.left = '0';
+                            card.style.top = '0';
                             slot.appendChild(card);
                             card.onclick = () => this.flip(card);
                         }, 700);
@@ -246,6 +171,10 @@
                 if (a.dataset.val === b.dataset.val) {
                     a.classList.add('matched');
                     b.classList.add('matched');
+                    setTimeout(() => {
+                        a.style.visibility = 'hidden';
+                        b.style.visibility = 'hidden';
+                    }, 800);
                     this.matches++;
                     if (this.matches === 10) this.showWinScreen();
                 } else {
@@ -255,17 +184,43 @@
                 this.selected = [];
             },
             showWinScreen() {
-                document.getElementById('win-screen').style.display = 'flex';
-                const user = prompt("Sync complete. Enter ID:") || "Unknown";
+                const username = prompt('Enter your username for the leaderboard:') || 'Anonymous';
+                const date = new Date().toLocaleDateString();
+                this.saveToLeaderboard(username, this.flips, date);
+                this.displayLeaderboard();
+                const ws = document.getElementById('win-screen');
+                ws.style.display = 'flex';
+                setTimeout(() => ws.classList.add('show'), 50);
+            },
+            saveToLeaderboard(username, flips, date) {
+                let lb = JSON.parse(localStorage.getItem('starbloodLB')) || [];
+                lb.push({ username, flips, date });
+                lb.sort((a,b) => a.flips - b.flips);
+                if (lb.length > 10) lb.length = 10;
+                localStorage.setItem('starbloodLB', JSON.stringify(lb));
+            },
+            displayLeaderboard() {
                 const body = document.getElementById('leaderboard-body');
-                body.innerHTML += `<tr><td>${user}</td><td>${this.flips}</td></tr>`;
+                body.innerHTML = '';
+                const lb = JSON.parse(localStorage.getItem('starbloodLB')) || [];
+                lb.forEach((e, i) => {
+                    body.innerHTML += `<tr><td>${i+1}</td><td>${e.username}</td><td>${e.flips}</td><td>${e.date}</td></tr>`;
+                });
+            },
+            loadLeaderboard() {
+                this.displayLeaderboard();
             },
             reset() {
-                location.reload();
+                const ws = document.getElementById('win-screen');
+                ws.classList.remove('show');
+                setTimeout(() => {
+                    ws.style.display = 'none';
+                    this.initBoard();
+                    this.deploy();
+                }, 1200);
             }
         };
-
-        app.init();
+        window.onload = () => app.init();
     </script>
 </body>
 </html>
