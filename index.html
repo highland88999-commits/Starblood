@@ -4,97 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>S T A R B L O O D</title>
-    <style>
-        :root {
-            --blood-glow: #ff3333;
-            --blood-dark: #8a0000;
-            --card-h: clamp(90px, 18dvh, 150px);
-            --card-w: calc(var(--card-h) * 0.72);
-        }
-        body { 
-            background: #000; color: white; font-family: 'Courier New', monospace; 
-            margin: 0; overflow: hidden; height: 100dvh; 
-        }
-        #nexus-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.4; pointer-events: none; }
-        #nexus-bg video { width: 100%; height: 100%; object-fit: cover; }
-        #main-ui { display: flex; flex-direction: column; height: 100vh; }
-        .title { text-align: center; color: var(--blood-glow); font-size: 2rem; padding: 20px; letter-spacing: 12px; }
-        #game-board { 
-            flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; 
-            padding: 20px; justify-items: center; align-content: center;
-        }
-        .card-placeholder { width: var(--card-w); height: var(--card-h); background: rgba(255,255,255,0.03); border-radius: 6px; position: relative; }
-        .card-entity { 
-            position: fixed; width: var(--card-w); height: var(--card-h); 
-            z-index: 1000; cursor: pointer; transition: all 0.7s cubic-bezier(0.25,1,0.5,1);
-        }
-        .card-layer {
-            position: absolute; inset: 0; border-radius: 6px; border: 1px solid rgba(138,0,0,0.6); 
-            background: #050505; overflow: hidden; transition: opacity 0.8s ease;
-        }
-        .video-layer { opacity: 0.6; }
-        .rune-layer {
-            opacity: 0; display: flex; align-items: center; justify-content: center;
-            font-size: clamp(3rem, 15vw, 8rem); color: var(--blood-glow);
-            text-shadow: 0 0 30px var(--blood-glow), 0 0 60px var(--blood-dark);
-            background: radial-gradient(circle at center, rgba(138,0,0,0.15) 0%, transparent 70%);
-        }
-        .card-entity.revealed .video-layer { opacity: 0; }
-        .card-entity.revealed .rune-layer { opacity: 1; animation: runePulse 1.2s ease-in-out; }
-        @keyframes runePulse {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .matched { animation: fadeIntoVoid 1s forwards; pointer-events: none; }
-        @keyframes fadeIntoVoid {
-            to { opacity: 0; transform: scale(0.6) translateZ(-600px); }
-        }
-        #deck-frame { 
-            position: fixed; bottom: 30px; right: 30px; width: 55px; height: 75px; 
-            border: 2px solid var(--blood-glow); border-radius: 4px; 
-            background: rgba(138,0,0,0.2); z-index: 2000; cursor: pointer; 
-            box-shadow: 0 0 15px var(--blood-dark); transition: all 0.3s;
-        }
-        #deck-frame:hover { box-shadow: 0 0 25px var(--blood-glow); transform: scale(1.08); }
-        #win-screen {
-            position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; transition: opacity 1.2s;
-        }
-        #win-screen.show { opacity: 1; }
-        #leaderboard { margin: 20px 0; color: white; }
-        #leaderboard h2 { 
-            cursor: pointer; user-select: none; transition: all 0.3s; 
-        }
-        #leaderboard h2:hover { text-shadow: 0 0 15px var(--blood-glow); }
-        #leaderboard table { border-collapse: collapse; width: 80%; max-width: 600px; }
-        #leaderboard th, #leaderboard td { border: 1px solid var(--blood-glow); padding: 8px; text-align: left; }
-        #leaderboard th { background: var(--blood-dark); }
-
-        /* Easter Egg: Rune Codex Overlay */
-        #rune-codex {
-            position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,0.92);
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            color: var(--blood-glow); padding: 20px; overflow-y: auto;
-        }
-        #rune-codex.show { display: flex; }
-        .rune-entry {
-            display: flex; align-items: center; margin: 15px 0; width: 90%; max-width: 700px;
-            padding: 15px; border: 1px solid rgba(255,51,51,0.3); border-radius: 8px;
-            background: rgba(138,0,0,0.08);
-        }
-        .rune-symbol {
-            font-size: 4rem; margin-right: 20px; min-width: 80px; text-align: center;
-            text-shadow: 0 0 20px var(--blood-glow);
-        }
-        .rune-info { flex: 1; }
-        .rune-name { font-size: 1.4rem; margin-bottom: 5px; }
-        .rune-desc { font-size: 1rem; opacity: 0.9; }
-        #codex-close {
-            position: absolute; top: 20px; right: 30px; font-size: 2rem; cursor: pointer;
-            color: var(--blood-glow); background: transparent; border: none;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap">
 </head>
 <body>
@@ -110,20 +20,24 @@
         <div id="deck-frame" onclick="app.deploy()"></div>
     </div>
 
-    <div id="win-screen">
-        <h1 style="color: var(--blood-glow); font-size: 3rem; letter-spacing: 10px;">SYNC COMPLETE</h1>
-        <p style="letter-spacing: 5px;">NEURAL LINK TERMINATED</p>
-        <div id="leaderboard">
-            <h2 id="leaderboard-title">Leaderboard</h2>
-            <table>
-                <thead><tr><th>#</th><th>Username</th><th>Flips</th><th>Date</th></tr></thead>
-                <tbody id="leaderboard-body"></tbody>
-            </table>
+    <div id="leaderboard-overlay">
+        <div class="holoframe">
+            <h1 id="leaderboard-title" style="color: var(--blood-glow); text-align: center; letter-spacing: 10px; margin-bottom: 5px;">SYNC COMPLETE</h1>
+            <p style="text-align: center; letter-spacing: 5px; color: white; margin-bottom: 20px; font-size: 0.8rem;">NEURAL LINK TERMINATED</p>
+            
+            <div class="scroll-area">
+                <table class="leaderboard-table">
+                    <thead><tr><th>#</th><th>Username</th><th>Flips</th><th>Date</th></tr></thead>
+                    <tbody id="leaderboard-body"></tbody>
+                </table>
+            </div>
+
+            <div class="restart-strip">
+                <button class="restart-btn" onclick="app.reset()">RESTART</button>
+            </div>
         </div>
-        <button onclick="app.reset()" style="background:transparent; color:var(--blood-glow); border:1px solid var(--blood-glow); padding:10px 30px; cursor:pointer; margin-top:20px; font-size:1.1rem;">RESTART</button>
     </div>
 
-    <!-- Easter Egg: Rune Codex Overlay -->
     <div id="rune-codex">
         <button id="codex-close" onclick="closeCodex()">×</button>
         <h1 style="color: var(--blood-glow); margin-bottom: 30px; letter-spacing: 8px;">RUNE CODEX</h1>
@@ -131,7 +45,6 @@
     </div>
 
     <script>
-        // 10 Elder Futhark runes + short meanings
         const runesData = [
             { rune: 'ᚠ', name: 'Fehu', meaning: 'Wealth, abundance, success, prosperity, new beginnings' },
             { rune: 'ᚢ', name: 'Uruz', meaning: 'Strength, vitality, health, endurance, raw power' },
@@ -182,7 +95,7 @@
                                 <source src="${cardVideo}">
                             </video>
                         </div>
-                        <div class="card-layer rune-layer" data-rune="${rune}"></div>
+                        <div class="card-layer rune-layer" data-rune="${rune}">${rune}</div>
                     `;
                     card.style.left = deckRect.left + 'px';
                     card.style.top = deckRect.top + 'px';
@@ -235,9 +148,8 @@
                 const date = new Date().toLocaleDateString();
                 this.saveToLeaderboard(username, this.flips, date);
                 this.displayLeaderboard();
-                const ws = document.getElementById('win-screen');
-                ws.style.display = 'flex';
-                setTimeout(() => ws.classList.add('show'), 50);
+                const overlay = document.getElementById('leaderboard-overlay');
+                overlay.style.display = 'flex';
             },
             saveToLeaderboard(username, flips, date) {
                 let lb = JSON.parse(localStorage.getItem('starbloodLB')) || [];
@@ -258,15 +170,11 @@
                 this.displayLeaderboard();
             },
             reset() {
-                const ws = document.getElementById('win-screen');
-                ws.classList.remove('show');
-                setTimeout(() => {
-                    ws.style.display = 'none';
-                    this.initBoard();
-                    this.deploy();
-                }, 1200);
+                const overlay = document.getElementById('leaderboard-overlay');
+                overlay.style.display = 'none';
+                this.initBoard();
+                this.deploy();
             },
-            // Easter Egg: Triple-click on "Leaderboard" title
             setupEasterEgg() {
                 const title = document.getElementById('leaderboard-title');
                 let clicks = 0;
