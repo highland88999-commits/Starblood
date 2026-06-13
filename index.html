@@ -124,7 +124,21 @@
         .restart-strip { margin-top: 20px; width: 100%; text-align: center; border-top: 1px solid var(--blood-dark); padding-top: 15px; }
         .restart-btn { background: transparent; color: white; border: 1px solid var(--blood-glow); padding: 10px 30px; cursor: pointer; letter-spacing: 5px; transition: 0.3s; }
         .restart-btn:hover { background: var(--blood-glow); box-shadow: 0 0 20px var(--blood-glow); }
+
+        /* --- Easter Egg: Rune Codex --- */
+        #rune-codex {
+            position: fixed; inset: 0; z-index: 6000; background: rgba(0,0,0,0.92); display: none;
+            flex-direction: column; align-items: center; justify-content: center; color: var(--blood-glow); padding: 20px; overflow-y: auto;
+        }
+        #rune-codex.show { display: flex; }
+        .rune-entry { display: flex; align-items: center; margin: 15px 0; width: 90%; max-width: 700px; padding: 15px; border: 1px solid rgba(255,51,51,0.3); border-radius: 8px; background: rgba(138,0,0,0.08); }
+        .rune-symbol { font-size: 4rem; margin-right: 20px; min-width: 80px; text-align: center; text-shadow: 0 0 20px var(--blood-glow); font-family: 'Noto Sans Runic', sans-serif; }
+        .rune-info { flex: 1; }
+        .rune-name { font-size: 1.4rem; margin-bottom: 5px; }
+        .rune-desc { font-size: 1rem; opacity: 0.9; }
+        #codex-close { position: absolute; top: 20px; right: 30px; font-size: 2rem; cursor: pointer; color: var(--blood-glow); background: transparent; border: none; }
     </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap">
 </head>
 <body>
     <div id="nexus-bg">
@@ -157,19 +171,38 @@
         </div>
     </div>
 
+    <div id="rune-codex">
+        <button id="codex-close" onclick="closeCodex()">×</button>
+        <h1 style="color: var(--blood-glow); margin-bottom: 30px; letter-spacing: 8px;">RUNE CODEX</h1>
+        <div id="rune-entries"></div>
+    </div>
+
     <script>
-        // Exact Vercel routing paths (Vercel hides the "public" folder from the URL)
+        // Precision paths synced perfectly to your /images/ folder and .jpeg files
         const faceFiles = [
-            "/images/Screenshot_2026-01-20-15-02-24-76_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-05-56-58_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-06-24-65_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-06-39-34_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-07-31-75_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-09-18-64_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-09-46-94_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-09-59-72_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-10-12-71_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-10-25-20_680d03679600f7af0b4c700c6b270fe7.jpg"
+            "images/IMG_0355.jpeg",
+            "images/IMG_0356.jpeg",
+            "images/IMG_0357.jpeg",
+            "images/IMG_0358.jpeg",
+            "images/IMG_0359.jpeg",
+            "images/IMG_0360.jpeg",
+            "images/IMG_0361.jpeg",
+            "images/IMG_0362.jpeg",
+            "images/IMG_0363.jpeg",
+            "images/IMG_0364.jpeg"
+        ];
+
+        const runesData = [
+            { rune: 'ᚠ', name: 'Fehu', meaning: 'Wealth, abundance, success, prosperity, new beginnings' },
+            { rune: 'ᚢ', name: 'Uruz', meaning: 'Strength, vitality, health, endurance, raw power' },
+            { rune: 'ᚦ', name: 'Thurisaz', meaning: 'Protection, defense, conflict, breakthrough, giant force' },
+            { rune: 'ᚨ', name: 'Ansuz', meaning: 'Communication, wisdom, inspiration, divine breath, signals' },
+            { rune: 'ᚱ', name: 'Raido', meaning: 'Journey, travel, rhythm, progress, wagon path' },
+            { rune: 'ᚲ', name: 'Kenaz', meaning: 'Torch, knowledge, creativity, illumination, craft' },
+            { rune: 'ᚷ', name: 'Gebo', meaning: 'Gift, partnership, exchange, balance, generosity' },
+            { rune: 'ᚹ', name: 'Wunjo', meaning: 'Joy, harmony, bliss, fellowship, achievement' },
+            { rune: 'ᚺ', name: 'Hagalaz', meaning: 'Hail, disruption, transformation, natural forces, crisis' },
+            { rune: 'ᚾ', name: 'Naudiz', meaning: 'Need, constraint, endurance, resistance, self-reliance' }
         ];
 
         const cardVideo = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4";
@@ -179,6 +212,8 @@
             init() {
                 this.initBoard();
                 this.loadLeaderboard();
+                this.setupEasterEgg();
+                this.populateCodex();
             },
             initBoard() {
                 const board = document.getElementById('game-board');
@@ -197,10 +232,10 @@
                 this.matches = 0;
                 this.selected = [];
 
-                // Create the paired deck
+                // Create the paired deck (10 unique images x 2 = 20 cards)
                 let deck = [...faceFiles, ...faceFiles];
 
-                // TRUE RANDOMIZATION: Fisher-Yates Shuffle Algorithm
+                // TRUE RANDOMIZATION: Fisher-Yates algorithm thoroughly shuffles the deck
                 for (let i = deck.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -246,28 +281,25 @@
                 });
             },
             flip(card) {
-                // Prevent flipping if 2 cards already selected, or if card is already flipped/matched
                 if (this.selected.length >= 2 || card.classList.contains('active') || card.classList.contains('matched')) return;
                 
                 card.classList.add('active');
                 this.selected.push(card);
                 this.flips++;
                 
-                // Once two cards are flipped, check for a match
                 if (this.selected.length === 2) {
-                    setTimeout(() => this.checkMatch(), 1000); // 1-second pause to let the user see the cards
+                    setTimeout(() => this.checkMatch(), 1000); 
                 }
             },
             checkMatch() {
                 const [a, b] = this.selected;
                 
                 if (a.dataset.val === b.dataset.val) {
-                    // Match found
                     a.classList.add('matched');
                     b.classList.add('matched');
                     this.matches++;
                     
-                    // PHYSICALLY REMOVE FROM BOARD: Hide the cards entirely after animation finishes
+                    // PHYSICALLY REMOVE FROM BOARD: Hide the cards entirely after fade animation
                     setTimeout(() => {
                         a.style.display = 'none';
                         b.style.display = 'none';
@@ -276,12 +308,10 @@
                     // Win condition
                     if (this.matches === 10) setTimeout(() => this.showWinScreen(), 1000);
                 } else {
-                    // No match, flip them back over
                     a.classList.remove('active');
                     b.classList.remove('active');
                 }
                 
-                // Clear the selection for the next turn
                 this.selected = [];
             },
             showWinScreen() {
@@ -316,8 +346,41 @@
                 overlay.style.display = 'none';
                 this.initBoard();
                 this.deploy();
+            },
+            setupEasterEgg() {
+                const title = document.getElementById('leaderboard-title');
+                let clicks = 0;
+                let timeout;
+                title.addEventListener('click', () => {
+                    clicks++;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => { clicks = 0; }, 800);
+                    if (clicks === 3) {
+                        document.getElementById('rune-codex').classList.add('show');
+                        clicks = 0;
+                    }
+                });
+            },
+            populateCodex() {
+                const container = document.getElementById('rune-entries');
+                runesData.forEach(r => {
+                    const entry = document.createElement('div');
+                    entry.className = 'rune-entry';
+                    entry.innerHTML = `
+                        <div class="rune-symbol">${r.rune}</div>
+                        <div class="rune-info">
+                            <div class="rune-name">${r.name}</div>
+                            <div class="rune-desc">${r.meaning}</div>
+                        </div>
+                    `;
+                    container.appendChild(entry);
+                });
             }
         };
+
+        function closeCodex() {
+            document.getElementById('rune-codex').classList.remove('show');
+        }
 
         window.onload = () => app.init();
     </script>
