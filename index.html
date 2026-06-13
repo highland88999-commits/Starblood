@@ -22,25 +22,11 @@
         }
 
         /* Persistent Background Animation */
-        #nexus-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            opacity: 0.4;
-            pointer-events: none;
-        }
-        #nexus-bg video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        #nexus-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.4; pointer-events: none; }
+        #nexus-bg video { width: 100%; height: 100%; object-fit: cover; }
 
         /* Game Layout */
-        #main-ui {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+        #main-ui { display: flex; flex-direction: column; height: 100vh; }
         .title {
             text-align: center;
             color: var(--blood-glow);
@@ -52,212 +38,107 @@
 
         /* 3D Game Board */
         #game-board {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            padding: 20px;
-            justify-items: center;
-            align-content: center;
-            perspective: 1200px; /* High-level depth */
+            flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            padding: 20px; justify-items: center; align-content: center;
+            perspective: 1200px;
         }
 
         .card-placeholder {
-            width: var(--card-w);
-            height: var(--card-h);
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 51, 51, 0.1);
-            border-radius: 6px;
-            position: relative;
+            width: var(--card-w); height: var(--card-h);
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 51, 51, 0.1);
+            border-radius: 6px; position: relative;
         }
 
         /* Card Entities & Animations */
         .card-entity {
-            position: fixed;
-            width: var(--card-w);
-            height: var(--card-h);
-            transform-style: preserve-3d;
-            z-index: 1000;
-            cursor: pointer;
+            position: fixed; width: var(--card-w); height: var(--card-h);
+            transform-style: preserve-3d; z-index: 1000; cursor: pointer;
         }
 
         .card-inner {
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
+            width: 100%; height: 100%; transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 6px;
-            border: 1px solid rgba(138, 0, 0, 0.6);
-            background: #050505;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            border-radius: 6px; border: 1px solid rgba(138, 0, 0, 0.6);
+            background: #050505; box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
         }
 
-        .card-entity.active .card-inner {
-            transform: rotateY(180deg);
-        }
+        .card-entity.active .card-inner { transform: rotateY(180deg); }
 
         .back, .front {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 6px;
-            overflow: hidden;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 6px; overflow: hidden;
         }
 
         .back { transform: rotateY(0deg); }
         .front { 
-            transform: rotateY(180deg); 
-            background-size: cover;
-            background-position: center;
+            transform: rotateY(180deg); background-size: cover; background-position: center; 
         }
 
         /* CRT Overlay for High-Level Feel */
         .front::after {
-            content: "";
-            position: absolute;
-            inset: 0;
+            content: ""; position: absolute; inset: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
+            background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
 
-        .back video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.6;
-        }
+        .back video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
 
-        .matched {
-            animation: fadeBack 0.8s forwards;
-            pointer-events: none;
-        }
-
-        @keyframes fadeBack {
-            to { opacity: 0; transform: scale(0.5) translateZ(-500px); }
-        }
+        .matched { animation: fadeBack 0.8s forwards; pointer-events: none; }
+        @keyframes fadeBack { to { opacity: 0; transform: scale(0.5) translateZ(-500px); } }
 
         #deck-frame {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 55px;
-            height: 75px;
-            border: 2px solid var(--blood-glow);
-            border-radius: 4px;
-            background: rgba(138, 0, 0, 0.2);
-            z-index: 2000;
-            cursor: pointer;
-            box-shadow: 0 0 15px var(--blood-dark);
-            transition: all 0.3s;
+            position: fixed; bottom: 30px; right: 30px; width: 55px; height: 75px;
+            border: 2px solid var(--blood-glow); border-radius: 4px; background: rgba(138, 0, 0, 0.2);
+            z-index: 2000; cursor: pointer; box-shadow: 0 0 15px var(--blood-dark); transition: all 0.3s;
         }
-        
-        #deck-frame:hover {
-            box-shadow: 0 0 25px var(--blood-glow);
-            transform: scale(1.08);
-        }
+        #deck-frame:hover { box-shadow: 0 0 25px var(--blood-glow); transform: scale(1.08); }
 
         /* --- Holoframe Leaderboard Styles --- */
         #leaderboard-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.9);
-            display: none; 
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 5000;
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000;
         }
 
         .holoframe {
-            width: 90%;
-            max-width: 600px;
-            background: rgba(40, 0, 0, 0.2);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--blood-glow);
-            border-radius: 20px;
-            padding: 20px;
+            width: 90%; max-width: 600px; background: rgba(40, 0, 0, 0.2); backdrop-filter: blur(15px);
+            border: 1px solid var(--blood-glow); border-radius: 20px; padding: 20px;
             box-shadow: 0 0 30px rgba(255, 0, 0, 0.2), inset 0 0 15px rgba(255, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
+            position: relative; overflow: hidden;
         }
 
-        /* The "Bloom Orb" Decoration */
         .holoframe::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 100px;
-            background: var(--blood-glow);
-            filter: blur(80px);
-            opacity: 0.4;
-            z-index: -1;
+            content: ''; position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 100px; background: var(--blood-glow); filter: blur(80px); opacity: 0.4; z-index: -1;
         }
 
-        #leaderboard-title { 
-            color: var(--blood-glow); 
-            text-align: center; 
-            letter-spacing: 10px; 
-            margin-bottom: 5px;
-        }
+        #leaderboard-title { color: var(--blood-glow); text-align: center; letter-spacing: 10px; margin-bottom: 5px; cursor: pointer; user-select: none; transition: 0.3s; }
+        #leaderboard-title:hover { text-shadow: 0 0 15px var(--blood-glow); }
 
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            color: #ffcccc;
-            text-align: left;
-        }
+        .leaderboard-table { width: 100%; border-collapse: collapse; color: #ffcccc; text-align: left; }
+        .leaderboard-table th { border-bottom: 1px solid var(--blood-dark); padding: 10px; font-size: 0.8rem; letter-spacing: 2px; color: var(--blood-glow); }
+        .leaderboard-table td { padding: 12px 10px; border-bottom: 1px solid rgba(138, 0, 0, 0.2); font-size: 0.9rem; }
 
-        .leaderboard-table th {
-            border-bottom: 1px solid var(--blood-dark);
-            padding: 10px;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            color: var(--blood-glow);
-        }
+        .scroll-area { max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--blood-dark) transparent; }
 
-        .leaderboard-table td {
-            padding: 12px 10px;
-            border-bottom: 1px solid rgba(138, 0, 0, 0.2);
-            font-size: 0.9rem;
-        }
+        .restart-strip { margin-top: 20px; width: 100%; text-align: center; border-top: 1px solid var(--blood-dark); padding-top: 15px; }
+        .restart-btn { background: transparent; color: white; border: 1px solid var(--blood-glow); padding: 10px 30px; cursor: pointer; letter-spacing: 5px; transition: 0.3s; }
+        .restart-btn:hover { background: var(--blood-glow); box-shadow: 0 0 20px var(--blood-glow); }
 
-        .scroll-area {
-            max-height: 400px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--blood-dark) transparent;
+        /* --- Easter Egg: Rune Codex --- */
+        #rune-codex {
+            position: fixed; inset: 0; z-index: 6000; background: rgba(0,0,0,0.92); display: none;
+            flex-direction: column; align-items: center; justify-content: center; color: var(--blood-glow); padding: 20px; overflow-y: auto;
         }
-
-        /* Restart Strip */
-        .restart-strip {
-            margin-top: 20px;
-            width: 100%;
-            text-align: center;
-            border-top: 1px solid var(--blood-dark);
-            padding-top: 15px;
-        }
-
-        .restart-btn {
-            background: transparent;
-            color: white;
-            border: 1px solid var(--blood-glow);
-            padding: 10px 30px;
-            cursor: pointer;
-            letter-spacing: 5px;
-            transition: 0.3s;
-        }
-
-        .restart-btn:hover {
-            background: var(--blood-glow);
-            box-shadow: 0 0 20px var(--blood-glow);
-        }
+        #rune-codex.show { display: flex; }
+        .rune-entry { display: flex; align-items: center; margin: 15px 0; width: 90%; max-width: 700px; padding: 15px; border: 1px solid rgba(255,51,51,0.3); border-radius: 8px; background: rgba(138,0,0,0.08); }
+        .rune-symbol { font-size: 4rem; margin-right: 20px; min-width: 80px; text-align: center; text-shadow: 0 0 20px var(--blood-glow); font-family: 'Noto Sans Runic', sans-serif; }
+        .rune-info { flex: 1; }
+        .rune-name { font-size: 1.4rem; margin-bottom: 5px; }
+        .rune-desc { font-size: 1rem; opacity: 0.9; }
+        #codex-close { position: absolute; top: 20px; right: 30px; font-size: 2rem; cursor: pointer; color: var(--blood-glow); background: transparent; border: none; }
     </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap">
 </head>
 <body>
     <div id="nexus-bg">
@@ -290,31 +171,48 @@
         </div>
     </div>
 
+    <div id="rune-codex">
+        <button id="codex-close" onclick="closeCodex()">×</button>
+        <h1 style="color: var(--blood-glow); margin-bottom: 30px; letter-spacing: 8px;">RUNE CODEX</h1>
+        <div id="rune-entries"></div>
+    </div>
+
     <script>
-        // High-precision file list directly matching your /public/images/ folder hashes
         const faceFiles = [
-            "/images/Screenshot_2026-01-20-15-02-24-76_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-05-56-58_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-06-24-65_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-06-39-34_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-07-31-75_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-09-18-64_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-09-46-94_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-09-59-72_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-10-12-71_680d03679600f7af0b4c700c6b270fe7.jpg",
-            "/images/Screenshot_2026-01-20-15-10-25-20_680d03679600f7af0b4c700c6b270fe7.jpg"
+            "public/images/Screenshot_2026-01-20-15-02-24-76_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-05-56-58_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-06-24-65_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-06-39-34_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-07-31-75_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-09-18-64_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-09-46-94_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-09-59-72_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-10-12-71_680d03679600f7af0b4c700c6b270fe7.jpg",
+            "public/images/Screenshot_2026-01-20-15-10-25-20_680d03679600f7af0b4c700c6b270fe7.jpg"
         ];
 
-        // Card back video
+        const runesData = [
+            { rune: 'ᚠ', name: 'Fehu', meaning: 'Wealth, abundance, success, prosperity, new beginnings' },
+            { rune: 'ᚢ', name: 'Uruz', meaning: 'Strength, vitality, health, endurance, raw power' },
+            { rune: 'ᚦ', name: 'Thurisaz', meaning: 'Protection, defense, conflict, breakthrough, giant force' },
+            { rune: 'ᚨ', name: 'Ansuz', meaning: 'Communication, wisdom, inspiration, divine breath, signals' },
+            { rune: 'ᚱ', name: 'Raido', meaning: 'Journey, travel, rhythm, progress, wagon path' },
+            { rune: 'ᚲ', name: 'Kenaz', meaning: 'Torch, knowledge, creativity, illumination, craft' },
+            { rune: 'ᚷ', name: 'Gebo', meaning: 'Gift, partnership, exchange, balance, generosity' },
+            { rune: 'ᚹ', name: 'Wunjo', meaning: 'Joy, harmony, bliss, fellowship, achievement' },
+            { rune: 'ᚺ', name: 'Hagalaz', meaning: 'Hail, disruption, transformation, natural forces, crisis' },
+            { rune: 'ᚾ', name: 'Naudiz', meaning: 'Need, constraint, endurance, resistance, self-reliance' }
+        ];
+
         const cardVideo = "https://j3oblrqjmsss4ayx.public.blob.vercel-storage.com/Videoleap_2026_01_20_18_07_56_976.mp4";
 
         const app = {
-            selected: [],
-            matches: 0,
-            flips: 0,
+            selected: [], matches: 0, flips: 0,
             init() {
                 this.initBoard();
                 this.loadLeaderboard();
+                this.setupEasterEgg();
+                this.populateCodex();
             },
             initBoard() {
                 const board = document.getElementById('game-board');
@@ -333,7 +231,6 @@
                 this.matches = 0;
                 this.selected = [];
 
-                // Duplicate the 10 images to make 20 pairs, then shuffle
                 const deck = [...faceFiles, ...faceFiles].sort(() => Math.random() - 0.5);
                 const deckFrame = document.getElementById('deck-frame');
                 const deckRect = deckFrame.getBoundingClientRect();
@@ -350,7 +247,6 @@
                         </div>
                     `;
 
-                    // Deal from deck position
                     card.style.left = deckRect.left + 'px';
                     card.style.top = deckRect.top + 'px';
                     card.style.transform = "scale(0.3)";
@@ -359,7 +255,6 @@
                     const slot = document.getElementById(`slot-${i}`);
                     const slotRect = slot.getBoundingClientRect();
 
-                    // Animate to destination grid
                     setTimeout(() => {
                         card.style.transition = "all 0.7s cubic-bezier(0.25, 1, 0.5, 1)";
                         card.style.left = slotRect.left + 'px';
@@ -409,7 +304,7 @@
                 let lb = JSON.parse(localStorage.getItem('starbloodLB')) || [];
                 lb.push({ username, flips, date });
                 lb.sort((a,b) => a.flips - b.flips);
-                if (lb.length > 10) lb.length = 10; // Keep top 10
+                if (lb.length > 10) lb.length = 10;
                 localStorage.setItem('starbloodLB', JSON.stringify(lb));
             },
             displayLeaderboard() {
@@ -428,8 +323,41 @@
                 overlay.style.display = 'none';
                 this.initBoard();
                 this.deploy();
+            },
+            setupEasterEgg() {
+                const title = document.getElementById('leaderboard-title');
+                let clicks = 0;
+                let timeout;
+                title.addEventListener('click', () => {
+                    clicks++;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => { clicks = 0; }, 800);
+                    if (clicks === 3) {
+                        document.getElementById('rune-codex').classList.add('show');
+                        clicks = 0;
+                    }
+                });
+            },
+            populateCodex() {
+                const container = document.getElementById('rune-entries');
+                runesData.forEach(r => {
+                    const entry = document.createElement('div');
+                    entry.className = 'rune-entry';
+                    entry.innerHTML = `
+                        <div class="rune-symbol">${r.rune}</div>
+                        <div class="rune-info">
+                            <div class="rune-name">${r.name}</div>
+                            <div class="rune-desc">${r.meaning}</div>
+                        </div>
+                    `;
+                    container.appendChild(entry);
+                });
             }
         };
+
+        function closeCodex() {
+            document.getElementById('rune-codex').classList.remove('show');
+        }
 
         window.onload = () => app.init();
     </script>
