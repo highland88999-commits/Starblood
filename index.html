@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>S T A R B L O O D</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root {
             --blood-glow: #ff3333;
@@ -39,7 +42,8 @@
         /* 3D Game Board */
         #game-board {
             flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            padding: 20px; justify-items: center; align-content: center;
+            /* Recalibrated padding to clear the footer */
+            padding: 20px 20px 70px 20px; justify-items: center; align-content: center;
             perspective: 1200px;
         }
 
@@ -88,7 +92,8 @@
         @keyframes fadeBack { to { opacity: 0; transform: scale(0.5) translateZ(-500px); } }
 
         #deck-frame {
-            position: fixed; bottom: 30px; right: 30px; width: 55px; height: 75px;
+            /* Recalibrated bottom constraint to clear footer */
+            position: fixed; bottom: 70px; right: 30px; width: 55px; height: 75px;
             border: 2px solid var(--blood-glow); border-radius: 4px; background: rgba(138, 0, 0, 0.2);
             z-index: 2000; cursor: pointer; box-shadow: 0 0 15px var(--blood-dark); transition: all 0.3s;
         }
@@ -137,6 +142,21 @@
         .rune-name { font-size: 1.4rem; margin-bottom: 5px; }
         .rune-desc { font-size: 1rem; opacity: 0.9; }
         #codex-close { position: absolute; top: 20px; right: 30px; font-size: 2rem; cursor: pointer; color: var(--blood-glow); background: transparent; border: none; }
+
+        /* Multiverse Tracker CSS Integration */
+        .cyber-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 12px 0;
+            background: rgba(5, 5, 5, 0.85); backdrop-filter: blur(4px);
+            border-top: 1px solid rgba(0, 255, 255, 0.15); z-index: 9999;
+            font-family: 'Courier New', Courier, monospace; pointer-events: none;
+        }
+        .visit-count {
+            color: #00ffff; font-size: 0.75rem; font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.8), 0 0 15px rgba(0, 255, 255, 0.4);
+            letter-spacing: 1.5px; text-transform: uppercase; pointer-events: auto;
+        }
+        .loading { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap">
 </head>
@@ -176,6 +196,12 @@
         <h1 style="color: var(--blood-glow); margin-bottom: 30px; letter-spacing: 8px;">RUNE CODEX</h1>
         <div id="rune-entries"></div>
     </div>
+
+    <footer class="cyber-footer">
+        <div class="visit-count" id="counter-display">
+            UPLINK ESTABLISHING <span class="loading">...</span>
+        </div>
+    </footer>
 
     <script>
         // Precision paths synced perfectly to your /images/ folder and .jpeg files
@@ -382,7 +408,64 @@
             document.getElementById('rune-codex').classList.remove('show');
         }
 
-        window.onload = () => app.init();
+        // ==========================================
+        // MULTIVERSE TRACKER LOGIC
+        // ==========================================
+        const supabaseUrl = 'https://ezfwzqxwafvdjtwnmyrx.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6Znd6cXh3YWZ2ZGp0d25teXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwOTA2NzIsImV4cCI6MjA5NzY2NjY3Mn0.baxnDWZ9rSZobzqnAOND7SuJpXbl4wmRyUYTQl4whPE';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        function getSafeVisitorId() {
+            let id = localStorage.getItem('nexus_visitor_id');
+            if (!id) {
+                if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                    id = crypto.randomUUID();
+                } else {
+                    id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+                localStorage.setItem('nexus_visitor_id', id);
+            }
+            return id;
+        }
+
+        async function updateMultiverseCount(isInitialLoad = false) {
+            const displayElement = document.getElementById('counter-display');
+            try {
+                const visitorId = getSafeVisitorId();
+
+                if (isInitialLoad) {
+                    await supabaseClient.rpc('track_ping', { p_ip_hash: visitorId });
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                const { data: globalData } = await supabaseClient.from('global_stats').select('total_pings').single();
+                const { count: uniqueCount } = await supabaseClient.from('unique_visitors').select('*', { count: 'exact', head: true });
+
+                const total = globalData ? globalData.total_pings : 0;
+                const unique = uniqueCount !== null ? uniqueCount : 0;
+                
+                displayElement.innerHTML = `
+                    UNIQUE TRAVERSALS: [ <span style="color: #ff00ff; text-shadow: 0 0 10px #ff00ff;">${unique}</span> ] 
+                    <span style="opacity: 0.5; margin: 0 10px;">///</span> 
+                    TOTAL PINGS: [ <span style="color: #00ffff;">${total}</span> ]
+                `;
+                displayElement.classList.remove('loading');
+
+            } catch (error) {
+                console.error('Uplink failed:', error);
+                displayElement.innerHTML = `MULTIVERSE NODE: [ <span style="color: #ff3366;">OFFLINE</span> ]`;
+                displayElement.classList.remove('loading');
+            }
+        }
+
+        window.addEventListener('load', () => {
+            app.init();
+            updateMultiverseCount(true);
+            setInterval(() => updateMultiverseCount(false), 60000);
+        });
     </script>
 </body>
 </html>
