@@ -22,6 +22,10 @@
             margin: 0;
             overflow: hidden;
             height: 100dvh;
+            /* Anti-Select/Touch-Callout Lock */
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
 
         /* Persistent Background Animation */
@@ -42,8 +46,7 @@
         /* 3D Game Board */
         #game-board {
             flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            /* Recalibrated padding to clear the footer */
-            padding: 20px 20px 70px 20px; justify-items: center; align-content: center;
+            padding: 20px; justify-items: center; align-content: center;
             perspective: 1200px;
         }
 
@@ -91,11 +94,24 @@
         .matched { animation: fadeBack 0.8s forwards; pointer-events: none; }
         @keyframes fadeBack { to { opacity: 0; transform: scale(0.5) translateZ(-500px); } }
 
+        /* --- Bottom Row Layout --- */
+        #bottom-controls {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; padding: 0 30px 70px 30px; box-sizing: border-box; z-index: 2000;
+        }
+
+        .holo-blue-btn {
+            background: rgba(0, 242, 255, 0.15); border: 1px solid #00f2ff; color: #00f2ff;
+            padding: 12px 24px; text-decoration: none; font-weight: bold; letter-spacing: 2px;
+            border-radius: 8px; backdrop-filter: blur(5px); box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+            transition: all 0.3s; text-align: center; font-size: 0.8rem; text-transform: uppercase;
+        }
+        .holo-blue-btn:hover { background: #00f2ff; color: #000; box-shadow: 0 0 25px #00f2ff; }
+
         #deck-frame {
-            /* Recalibrated bottom constraint to clear footer */
-            position: fixed; bottom: 70px; right: 30px; width: 55px; height: 75px;
+            width: 55px; height: 75px; flex-shrink: 0;
             border: 2px solid var(--blood-glow); border-radius: 4px; background: rgba(138, 0, 0, 0.2);
-            z-index: 2000; cursor: pointer; box-shadow: 0 0 15px var(--blood-dark); transition: all 0.3s;
+            cursor: pointer; box-shadow: 0 0 15px var(--blood-dark); transition: all 0.3s;
         }
         #deck-frame:hover { box-shadow: 0 0 25px var(--blood-glow); transform: scale(1.08); }
 
@@ -170,7 +186,10 @@
     <div id="main-ui">
         <div class="title">STARBLOOD</div>
         <div id="game-board"></div>
-        <div id="deck-frame" onclick="app.deploy()"></div>
+        <div id="bottom-controls">
+            <a href="https://hermes-landing-nu.vercel.app" target="_blank" class="holo-blue-btn">HERMES MALL</a>
+            <div id="deck-frame" onclick="app.deploy()"></div>
+        </div>
     </div>
 
     <div id="leaderboard-overlay">
