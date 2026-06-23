@@ -11,9 +11,9 @@
         :root {
             --blood-glow: #ff3333;
             --blood-dark: #8a0000;
-            /* Fixed aspect ratio to prevent skewing and clipping */
-            --card-w: clamp(65px, 20vw, 110px);
-            --card-h: calc(var(--card-w) * 1.4);
+            /* Height-based scaling ensures all 5 rows fit perfectly on screen */
+            --card-h: clamp(60px, 12.5dvh, 110px);
+            --card-w: calc(var(--card-h) * 0.72);
         }
         
         body {
@@ -38,16 +38,16 @@
         .title {
             text-align: center;
             color: var(--blood-glow);
-            font-size: 2rem;
-            padding: 20px;
+            font-size: 1.8rem;
+            padding: 15px 10px 5px 10px;
             letter-spacing: 12px;
             text-shadow: 0 0 20px var(--blood-dark);
         }
 
         /* 3D Game Board */
         #game-board {
-            flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            padding: 10px 20px 70px 20px; justify-items: center; align-content: center;
+            flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+            padding: 10px 15px 10px 15px; justify-items: center; align-content: center;
             perspective: 1200px;
         }
 
@@ -75,13 +75,12 @@
         .back, .front {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 6px; overflow: hidden;
-            background-color: #000; /* Ensure no white flash on load */
+            background-color: #000;
         }
 
         .back { transform: rotateY(0deg); }
         .front { 
             transform: rotateY(180deg); 
-            /* contain prevents cropping, no-repeat prevents tiling */
             background-size: contain; 
             background-position: center; 
             background-repeat: no-repeat;
@@ -103,7 +102,7 @@
         /* --- Bottom Row Layout --- */
         #bottom-controls {
             display: flex; justify-content: space-between; align-items: center;
-            width: 100%; padding: 0 30px 70px 30px; box-sizing: border-box; z-index: 2000;
+            width: 100%; padding: 10px 30px 65px 30px; box-sizing: border-box; z-index: 2000;
         }
 
         .holo-blue-btn {
